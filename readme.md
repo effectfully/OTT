@@ -69,8 +69,11 @@ A model of the model can be found [here](https://github.com/effectfully/random-s
   I'm not aware of such encoding. The best seems to be [3], but as far as I understand only (1) and (2) hold for it. It's probably possible to add (4) by introducing the superuniverse in the style of [5] like [this](https://github.com/effectfully/random-stuff/blob/master/Omega.agda).
 
 - Definional proof irrelevance.
+
 - Erasing of stuck coercions between definitionally equal sets (that's not my fault, Agda just doesn't have an available definitional equality checker) (note that we have proper eliminators without this tool unlike in OTT with W-types (see [4])).
+
 - Equality for propositions should be isomorphism.
+
 - Codata (is it simply the coinductive counterpart of `rose`?).
 
 ## Remarks

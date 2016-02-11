@@ -38,11 +38,11 @@ fromFin : ∀ {n} -> Fin n -> ℕ
 fromFin = foldFin suc 0
 
 elimFin′ : ∀ {n π}
-        -> (P : ∀ n -> Set π)
-        -> (∀ {n} {i : Fin n} -> P (fromFin i) -> P (suc (fromFin i)))
-        -> P 0
-        -> (i : Fin n)
-        -> P (fromFin i)
+         -> (P : ∀ n -> Set π)
+         -> (∀ {n} {i : Fin n} -> P (fromFin i) -> P (suc (fromFin i)))
+         -> P 0
+         -> (i : Fin n)
+         -> P (fromFin i)
 elimFin′ P f x = elimFinₑ (P ∘ fromFin) (λ {n m i} _ -> f {i = i}) (const x)
 
 elimFin : ∀ {n π}
@@ -57,8 +57,11 @@ elimFin P f x = elimFinₑ (⟦_⟧ ∘ P)
 
 
 
+-- _+ᶠ_ : ∀ {n m} -> (i : Fin n) -> Fin m -> Fin (fromFin i + m)
+-- i +ᶠ j = elimFin′ (λ n -> Fin (n + _)) fsuc j i 
+
 _+ᶠ_ : ∀ {n m} -> (i : Fin n) -> Fin m -> Fin (fromFin i + m)
-i +ᶠ j = elimFin′ (λ n -> Fin (n + _)) fsuc j i 
+i +ᶠ j = elimFin (λ i -> fin (fromFin i + _)) fsuc j i 
 
 postulate
   n m : ℕ

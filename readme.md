@@ -73,7 +73,7 @@ A model of the model can be found [here](https://github.com/effectfully/random-s
 - Equality for propositions should be isomorphism.
 - Codata (is it simply the coinductive counterpart of `rose`?).
 
-# Remarks
+## Remarks
 
 Originally I added the codes for `All` and `Any` (both were explicit-unification-constraints-transformed to make them appropriately coercible) to the universe, but it's very (**very**) annoying to define eliminators with such machinery, so I switched to a simpler one. We could add codes for `All` and `Any` without transforming the corresponding data types and even derive equality and coercions for `rose` from them, but it's nearly impossible to understand the behaviour of `coerce` then:
 
@@ -93,10 +93,14 @@ coerceChilds {i₂ = i₂} {i₁} q = let q₁ , q₂ , q₃ = q in coerce
 
 A bunch of different encodings of OTT can be found [here](https://github.com/effectfully/random-stuff/tree/master/OTT).
 
-# References
+## References
 
 [1] ["Towards Observational Type Theory", Thorsten Altenkirch and Conor McBride](http://strictlypositive.org/ott.pdf)
+
 [2] ["Observational Equality, Now!", Thorsten Altenkirch, Conor McBride, Wouter Swierstra](http://www.cs.nott.ac.uk/~psztxa/publ/obseqnow.pdf)
+
 [3] ["Hier Soir, an OTT Hierarchy", Conor McBride](http://mazzo.li/epilogue/index.html%3Fp=1098.html)
+
 [4] ["W-types: good news and bad news", Conor McBride](http://mazzo.li/epilogue/index.html%3Fp=324.html)
+
 [5] ["On Universes in Type Theory", Erik Palmgren](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.221.1318&rep=rep1&type=pdf)

@@ -5,7 +5,7 @@ open import OTT.Main
 infixr 5 _∷ᵥ_
 
 vec : ∀ {k} -> Univ k -> ℕ -> Type
-vec A = rose ((, top , λ _ -> [] , 0) ∷ (, (A & nat) , λ p -> proj₂ p ∷ [] , suc (proj₂ p)) ∷ [])
+vec A = rose $ (unit , λ _ -> [] , 0) ∷ ((nat & A) , λ p -> proj₁ p ∷ [] , suc (proj₁ p)) ∷ []
 
 Vec : ∀ {k} -> Univ k -> ℕ -> Set
 Vec A n = ⟦ vec A n ⟧
@@ -14,7 +14,7 @@ vnilₑ : ∀ {m k} {A : Univ k} -> ⟦ 0 ≅ m ⇒ vec A m ⟧
 vnilₑ q = node $ 0 # , [] , q
 
 vconsₑ : ∀ {n m k} {A : Univ k} -> ⟦ suc n ≅ m ⇒ A ⇒ vec A n ⇒ vec A m ⟧
-vconsₑ {n} q x xs = node $ 1 # (x , n) , xs ∷ [] , q
+vconsₑ {n} q x xs = node $ 1 # (n , x) , xs ∷ [] , q
 
 []ᵥ : ∀ {k} {A : Univ k} -> Vec A 0
 []ᵥ = vnilₑ (refl 0)
@@ -30,7 +30,7 @@ elimVecₑ : ∀ {n k π} {A : Univ k}
          -> (xs : Vec A n)
          -> P xs
 elimVecₑ P f z (node (here  (, [] , q)))                    = z q
-elimVecₑ P f z (node (there (here ((x , n), xs ∷ [] , q)))) = f q x (elimVecₑ P f z xs)
+elimVecₑ P f z (node (there (here ((n , x), xs ∷ [] , q)))) = f q x (elimVecₑ P f z xs)
 elimVecₑ P f z (node (there (there ())))
 
 foldVec : ∀ {n k π} {A : Univ k} {P : Set π} -> (⟦ A ⟧ -> P -> P) -> P -> Vec A n -> P

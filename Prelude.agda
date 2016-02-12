@@ -53,9 +53,9 @@ injAt⁺ (x ∷ xs)  zero   p = here p
 injAt⁺ (x ∷ xs) (suc i) p = there (injAt⁺ xs i p)
 
 module _ {α π} {A : Set α} {P : A -> Set π} n {p : A ^ n} where
-  xs = toList n p
-
   infix 2 _#_
+
+  xs = toList n p
 
   _#_ : tryFromℕ n >>=ᵀ λ i -> ∀ {ys} -> P (xs !! i) -> Any P (xs ++ ys)
   _#_ = tryFromℕ n >>=ᵗ λ i {_} -> injAt⁺ xs i

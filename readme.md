@@ -1,6 +1,6 @@
 # OTT
 
-It's an implementation of Observational Type Theory as an Agda library. The universe contains `⊤`, `⊥`, booleans, natural numbers, two impredicative universes (`Prop` (OK) and `Type` (not OK)), Σ- and Π-types, lists and allows generic programming via the `rose` construct.
+It's an implementation of Observational Type Theory as an Agda library. The universe contains `⊤` (one in `Prop` and one in `Type`), `⊥`, natural numbers, two impredicative universes (`Prop` (OK) and `Type` (not OK)), Σ- and Π-types, lists and allows generic programming via the `rose` construct.
 
 ## Implemented
 

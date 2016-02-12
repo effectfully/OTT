@@ -14,8 +14,8 @@ Coerce {true } {false} () A
 mutual
   coerce : ∀ {α β} {A : Univ α} {B : Univ β} -> ⟦ A ≃ B ⟧ -> ⟦ A ⟧ -> ⟦ B ⟧
   coerce {A = bot        } {bot        } q ()
-  coerce {A = top        } {top        } q tt = tt
-  coerce {A = bool       } {bool       } q b  = b
+  coerce {A = top        } {top        } q _  = _
+  coerce {A = unit       } {unit       } q _  = _
   coerce {A = nat        } {nat        } q n  = n
   coerce {A = univ k₁    } {univ k₂    } q A  = Coerce q A
   coerce {A = σ A₁ B₁    } {σ A₂ B₂    } q p  = let q₁ , q₂ = q ; x , y = p in
@@ -25,7 +25,7 @@ mutual
   coerce {A = list  A₁   } {list A₂    } q xs = lmap (coerce q) xs
   coerce {A = rose cs₁ i₁} {rose cs₂ i₂} q r  = coerceRose q r
   coerce {A = bot     } {top     } ()
-  coerce {A = bot     } {bool    } ()
+  coerce {A = bot     } {unit    } ()
   coerce {A = bot     } {nat     } ()
   coerce {A = bot     } {univ _  } ()
   coerce {A = bot     } {σ _ _   } ()
@@ -33,24 +33,24 @@ mutual
   coerce {A = bot     } {list _  } ()
   coerce {A = bot     } {rose _ _} ()
   coerce {A = top     } {bot     } ()
-  coerce {A = top     } {bool    } ()
+  coerce {A = top     } {unit    } ()
   coerce {A = top     } {nat     } ()
   coerce {A = top     } {univ _  } ()
   coerce {A = top     } {σ _ _   } ()
   coerce {A = top     } {π _ _   } ()
   coerce {A = top     } {list _  } ()
   coerce {A = top     } {rose _ _} ()
-  coerce {A = bool    } {bot     } ()
-  coerce {A = bool    } {top     } ()
-  coerce {A = bool    } {nat     } ()
-  coerce {A = bool    } {univ _  } ()
-  coerce {A = bool    } {σ _ _   } ()
-  coerce {A = bool    } {π _ _   } ()
-  coerce {A = bool    } {list _  } ()
-  coerce {A = bool    } {rose _ _} ()
+  coerce {A = unit    } {bot     } ()
+  coerce {A = unit    } {top     } ()
+  coerce {A = unit    } {nat     } ()
+  coerce {A = unit    } {univ _  } ()
+  coerce {A = unit    } {σ _ _   } ()
+  coerce {A = unit    } {π _ _   } ()
+  coerce {A = unit    } {list _  } ()
+  coerce {A = unit    } {rose _ _} ()
   coerce {A = nat     } {bot     } ()
   coerce {A = nat     } {top     } ()
-  coerce {A = nat     } {bool    } ()
+  coerce {A = nat     } {unit    } ()
   coerce {A = nat     } {univ _  } ()
   coerce {A = nat     } {σ _ _   } ()
   coerce {A = nat     } {π _ _   } ()
@@ -58,7 +58,7 @@ mutual
   coerce {A = nat     } {rose _ _} ()
   coerce {A = univ _  } {bot     } ()
   coerce {A = univ _  } {top     } ()
-  coerce {A = univ _  } {bool    } ()
+  coerce {A = univ _  } {unit    } ()
   coerce {A = univ _  } {nat     } ()
   coerce {A = univ _  } {σ _ _   } ()
   coerce {A = univ _  } {π _ _   } ()
@@ -66,7 +66,7 @@ mutual
   coerce {A = univ _  } {rose _ _} ()
   coerce {A = σ _ _   } {bot     } ()
   coerce {A = σ _ _   } {top     } ()
-  coerce {A = σ _ _   } {bool    } ()
+  coerce {A = σ _ _   } {unit    } ()
   coerce {A = σ _ _   } {nat     } ()
   coerce {A = σ _ _   } {univ _  } ()
   coerce {A = σ _ _   } {π _ _   } ()
@@ -74,7 +74,7 @@ mutual
   coerce {A = σ _ _   } {rose _ _} ()
   coerce {A = π _ _   } {bot     } ()
   coerce {A = π _ _   } {top     } ()
-  coerce {A = π _ _   } {bool    } ()
+  coerce {A = π _ _   } {unit    } ()
   coerce {A = π _ _   } {nat     } ()
   coerce {A = π _ _   } {univ _  } ()
   coerce {A = π _ _   } {σ _ _   } ()
@@ -82,7 +82,7 @@ mutual
   coerce {A = π _ _   } {rose _ _} ()
   coerce {A = list _  } {bot     } ()
   coerce {A = list _  } {top     } ()
-  coerce {A = list _  } {bool    } ()
+  coerce {A = list _  } {unit    } ()
   coerce {A = list _  } {nat     } ()
   coerce {A = list _  } {univ _  } ()
   coerce {A = list _  } {σ _ _   } ()
@@ -90,7 +90,7 @@ mutual
   coerce {A = list _  } {rose _ _} ()
   coerce {A = rose _ _} {bot     } ()
   coerce {A = rose _ _} {top     } ()
-  coerce {A = rose _ _} {bool    } ()
+  coerce {A = rose _ _} {unit    } ()
   coerce {A = rose _ _} {nat     } ()
   coerce {A = rose _ _} {univ _  } ()
   coerce {A = rose _ _} {σ _ _   } ()
@@ -116,10 +116,10 @@ mutual
                -> Childs cs₂ ds₂ i₂
   coerceChilds {ds₂ = _ ∷ _} {i₂} {i₁} cq  dq      (here {x = d} p) =
     let x , rs , q₁ = p                   in
-    let ((, q₂ , r) , q₃) , q₄ = dq       in
+    let ((q₂ , r) , q₃) , q₄ = dq         in
     let x′ = coerce q₂ x                  in
     let q₅ , q₆ = r x x′ (coherence q₂ x) in
-    let z = proj₂ (proj₂ (proj₂ d) x)     in
+    let z = proj₂ (proj₂ d x)             in
       here (x′ , coerceAll (λ x₁ x₂ q -> proj₁ cq , sym x₁ q) q₅ rs , right z q₆ (left z q₁ q₄))
   coerceChilds {ds₂ = _ ∷ _}           cq  dq      (there a)        =
     let (_ , q₁) , q₂ = dq in there (coerceChilds cq (q₁ , q₂) a)

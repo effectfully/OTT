@@ -83,7 +83,7 @@ A model of the model can be found [here](https://github.com/effectfully/random-s
 
 - Definitional proof irrelevance.
 
-- Erasion of stuck coercions between definitionally equal sets (that's not my fault, Agda just doesn't have an available definitional equality checker) (note that we have proper eliminators without this tool unlike in OTT with W-types (and they are still improper, see [4])).
+- Erasion of stuck coercions between definitionally equal types (that's not my fault, Agda just doesn't have an available definitional equality checker) (note that we have proper eliminators without this tool unlike in OTT with W-types (and they are still improper, see [4])).
 
 - Equality for propositions should be isomorphism.
 

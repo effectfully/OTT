@@ -10,7 +10,11 @@ open import Data.Nat.Base public
 open import Data.List.Base hiding (zip) renaming (map to lmap) public
 open import Data.List.Any using (Any; here; there) public
 open import Data.List.All using (All; []; _∷_) public
-open import Data.Product renaming (map to pmap) public
+open import Data.Product hiding (,_) renaming (map to pmap) public
+
+infix 4 ,_
+pattern ,_ y = _ , y
+
 
 infixr 1 _&_
 infixr 2 _⇒_
@@ -27,16 +31,15 @@ _≃_  : ∀ {k s} -> Univ k -> Univ s -> Prop
 _≅_  : ∀ {k s} {A : Univ k} {B : Univ s} -> ⟦ A ⟧ -> ⟦ B ⟧ -> Prop
 _≅s_ : ∀ {k s} {A : Univ k} {B : Univ s} -> List ⟦ A ⟧ -> List ⟦ B ⟧ -> Prop
 
--- Do we also need props here?
 Cons : Type -> Set
-Cons I = ∃ λ (A : Type) -> ⟦ A ⟧ -> List ⟦ I ⟧ × ⟦ I ⟧
+Cons I = ∃₂ λ k (A : Univ k) -> ⟦ A ⟧ -> List ⟦ I ⟧ × ⟦ I ⟧
 
 Desc : Type -> Set
 Desc = List ∘ Cons
 
 module _ {I : Type} where
   Extend : (⟦ I ⟧ -> Set) -> ⟦ I ⟧ -> Cons I -> Set
-  Extend F i (A , f) = ∃ λ x -> let is , j = f x in All F is × ⟦ j ≅ i ⟧
+  Extend F i (, A , f) = ∃ λ x -> let is , j = f x in All F is × ⟦ j ≅ i ⟧
 
   mutual
     record Rose (cs : Desc I) i : Set where
@@ -51,9 +54,8 @@ _≅c_ : ∀ {I₁ I₂} {cs₁ ds₁ : Desc I₁} {cs₂ ds₂ : Desc I₂} {i�
      -> Childs cs₁ ds₁ i₁ -> Childs cs₂ ds₂ i₂ -> Prop
 
 data Univ where
-  bot  : Prop
-  top  : Prop
-  nat  : Type
+  bot  top : Prop
+  bool nat : Type
   univ : Bool -> Type
   σ    : ∀ {k s} -> (A : Univ k) -> (⟦ A ⟧ -> Univ s) -> Univ (k ∨ s)
   π    : ∀ {k s} -> (A : Univ k) -> (⟦ A ⟧ -> Univ s) -> Univ  s
@@ -62,6 +64,7 @@ data Univ where
 
 ⟦ bot       ⟧ = ⊥
 ⟦ top       ⟧ = ⊤
+⟦ bool      ⟧ = Bool
 ⟦ nat       ⟧ = ℕ
 ⟦ univ k    ⟧ = Univ k
 ⟦ σ A B     ⟧ = ∃ λ x -> ⟦ B x ⟧
@@ -90,6 +93,7 @@ _     ≟ⁿ _     = bot
 
 bot         ≃ bot         = top
 top         ≃ top         = top
+bool        ≃ bool        = top
 nat         ≃ nat         = top
 univ k₁     ≃ univ k₂     = k₁ ≟ᵇ k₂
 σ A₁ B₁     ≃ σ A₂ B₂     = A₁ ≃ A₂ & B₁ ≅ B₂
@@ -100,7 +104,8 @@ _           ≃ _           = bot
 
 _≅_ {A = bot        } {bot        } _   _   = top
 _≅_ {A = top        } {top        } _   _   = top
-_≅_ {A = nat        } {nat        } n   m   = n ≟ⁿ m
+_≅_ {A = bool       } {bool       } b₁  b₂  = b₁ ≟ᵇ b₂
+_≅_ {A = nat        } {nat        } n₁  n₂  = n₁ ≟ⁿ n₂
 _≅_ {A = univ k₁    } {univ k₂    } A₁  A₂  = A₁ ≃ A₂
 _≅_ {A = σ A₁ B₁    } {σ A₂ B₂    } p₁  p₂  = let x₁ , y₁ = p₁ ; x₂ , y₂ = p₂ in x₁ ≅ x₂ & y₁ ≅ y₂
 _≅_ {A = π A₁ B₁    } {π A₂ B₂    } f₁  f₂  = π _ λ x₁ -> π _ λ x₂ -> x₁ ≅ x₂ ⇒ f₁ x₁ ≅ f₂ x₂

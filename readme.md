@@ -1,6 +1,6 @@
 # OTT
 
-It's an implementation of Observational Type Theory as an Agda library. The universe contains `⊤`, `⊥`, natural numbers, two impredicative universes (`Prop` (OK) and `Type` (not OK)), Σ- and Π-types, lists and allows generic programming via the `rose` construct.
+It's an implementation of Observational Type Theory as an Agda library. The universe contains `⊤`, `⊥`, booleans, natural numbers, two impredicative universes (`Prop` (OK) and `Type` (not OK)), Σ- and Π-types, lists and allows generic programming via the `rose` construct.
 
 ## Implemented
 
@@ -66,7 +66,7 @@ A model of the model can be found [here](https://github.com/effectfully/random-s
   4. `⟦ type n ⟧ ≡ Type n` for neutral `n`
   5. easy to use
   
-  I'm not aware of such encoding. The best seems to be [3], but as far as I understand only (1) and (2) hold for it. It's probably possible to add (4) by introducing the superuniverse in the style of [5] like [this](https://github.com/effectfully/random-stuff/blob/master/Omega.agda).
+  I'm not aware of such encoding. The best seems to be [3], but as far as I understand only (1) and (2) hold for it. It's probably possible to add (4) by introducing a super universe in the style of [5] like [this](https://github.com/effectfully/random-stuff/blob/master/Omega.agda).
 
 - Definional proof irrelevance.
 
@@ -98,12 +98,12 @@ A bunch of different encodings of OTT can be found [here](https://github.com/eff
 
 ## References
 
-[1] ["Towards Observational Type Theory", Thorsten Altenkirch and Conor McBride](http://strictlypositive.org/ott.pdf)
+[1] ["Towards Observational Type Theory"](http://strictlypositive.org/ott.pdf), Thorsten Altenkirch and Conor McBride
 
-[2] ["Observational Equality, Now!", Thorsten Altenkirch, Conor McBride, Wouter Swierstra](http://www.cs.nott.ac.uk/~psztxa/publ/obseqnow.pdf)
+[2] ["Observational Equality, Now!"](http://www.cs.nott.ac.uk/~psztxa/publ/obseqnow.pdf), Thorsten Altenkirch, Conor McBride, Wouter Swierstra
 
-[3] ["Hier Soir, an OTT Hierarchy", Conor McBride](http://mazzo.li/epilogue/index.html%3Fp=1098.html)
+[3] ["Hier Soir, an OTT Hierarchy"](http://mazzo.li/epilogue/index.html%3Fp=1098.html), Conor McBride
 
-[4] ["W-types: good news and bad news", Conor McBride](http://mazzo.li/epilogue/index.html%3Fp=324.html)
+[4] ["W-types: good news and bad news"](http://mazzo.li/epilogue/index.html%3Fp=324.html), Conor McBride
 
-[5] ["On Universes in Type Theory", Erik Palmgren](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.221.1318&rep=rep1&type=pdf)
+[5] ["On Universes in Type Theory"](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.221.1318&rep=rep1&type=pdf), Erik Palmgren

@@ -4,7 +4,7 @@ open import OTT.Core
 open import OTT.Coerce
 
 fin : ℕ -> Type
-fin = rose ((nat , λ m -> [] , suc m) ∷ (nat , λ m -> m ∷ [] , suc m) ∷ [])
+fin = rose ((, nat , λ m -> [] , suc m) ∷ (, nat , λ m -> m ∷ [] , suc m) ∷ [])
 
 Fin : ℕ -> Set
 Fin n = ⟦ fin n ⟧
@@ -45,15 +45,15 @@ elimFin′ : ∀ {n π}
          -> P (fromFin i)
 elimFin′ P f x = elimFinₑ (P ∘ fromFin) (λ {n m i} _ -> f {i = i}) (const x)
 
-elimFin : ∀ {n π}
-        -> (P : ∀ {n} -> Fin n -> Univ π)
+elimFin : ∀ {n k}
+        -> (P : ∀ {n} -> Fin n -> Univ k)
         -> (∀ {n} {i : Fin n} -> ⟦ P i ⇒ P (fsuc i) ⟧)
         -> (∀ {n} -> ⟦ P {suc n} fzero ⟧)
         -> (i : Fin n)
         -> ⟦ P i ⟧
 elimFin P f x = elimFinₑ (⟦_⟧ ∘ P)
-  (λ {n m i} q r -> subst₂ (λ p q -> P {p} (fsucₑ q i)) q (huip (suc n) m q) (f r))
-  (λ {n m}   q   -> subst₂ (λ p q -> P {p} (fzeroₑ q))  q (huip (suc n) m q)  x)
+  (λ {n m i} q r -> subst₂ (λ m q -> P {m} (fsucₑ q i)) q (huip (suc n) m q) (f r))
+  (λ {n m}   q   -> subst₂ (λ m q -> P {m} (fzeroₑ q))  q (huip (suc n) m q)  x)
 
 
 

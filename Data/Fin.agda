@@ -1,7 +1,6 @@
 module OTT.Data.Fin where
 
-open import OTT.Core
-open import OTT.Coerce
+open import OTT.Main
 
 fin : ℕ -> Type
 fin = rose ((, nat , λ m -> [] , suc m) ∷ (, nat , λ m -> m ∷ [] , suc m) ∷ [])
@@ -10,10 +9,10 @@ Fin : ℕ -> Set
 Fin n = ⟦ fin n ⟧
 
 fzeroₑ : ∀ {n m} -> ⟦ suc n ≅ m ⟧ -> Fin m
-fzeroₑ {n} q = node (here (n , [] , q))
+fzeroₑ {n} q = node $ 0 # n , [] , q
 
 fsucₑ : ∀ {n m} -> ⟦ suc n ≅ m ⟧ -> Fin n -> Fin m
-fsucₑ {n} q i = node (there (here (n , i ∷ [] , q)))
+fsucₑ {n} q i = node $ 1 # n , i ∷ [] , q
 
 fzero : ∀ {n} -> Fin (suc n)
 fzero {n} = fzeroₑ {n} (refl (suc n))

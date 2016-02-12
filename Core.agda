@@ -2,19 +2,7 @@
 
 module OTT.Core where
 
-open import Function public
-open import Data.Empty public
-open import Data.Unit.Base using (⊤; tt) public
-open import Data.Bool.Base hiding (_≟_) public
-open import Data.Nat.Base public
-open import Data.List.Base hiding (zip) renaming (map to lmap) public
-open import Data.List.Any using (Any; here; there) public
-open import Data.List.All using (All; []; _∷_) public
-open import Data.Product hiding (,_) renaming (map to pmap) public
-
-infix 4 ,_
-pattern ,_ y = _ , y
-
+open import OTT.Prelude
 
 infixr 1 _&_
 infixr 2 _⇒_

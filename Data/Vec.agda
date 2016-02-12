@@ -1,7 +1,6 @@
 module OTT.Data.Vec where
 
-open import OTT.Core
-open import OTT.Coerce
+open import OTT.Main
 
 infixr 5 _∷ᵥ_
 
@@ -12,10 +11,10 @@ Vec : ∀ {k} -> Univ k -> ℕ -> Set
 Vec A n = ⟦ vec A n ⟧
 
 vnilₑ : ∀ {m k} {A : Univ k} -> ⟦ 0 ≅ m ⇒ vec A m ⟧
-vnilₑ p = node (here (, [] , p))
+vnilₑ q = node $ 0 # , [] , q
 
 vconsₑ : ∀ {n m k} {A : Univ k} -> ⟦ suc n ≅ m ⇒ A ⇒ vec A n ⇒ vec A m ⟧
-vconsₑ {n} q x xs = node (there (here ((x , n) , xs ∷ [] , q)))
+vconsₑ {n} q x xs = node $ 1 # (x , n) , xs ∷ [] , q
 
 []ᵥ : ∀ {k} {A : Univ k} -> Vec A 0
 []ᵥ = vnilₑ (refl 0)

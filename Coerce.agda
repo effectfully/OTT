@@ -2,6 +2,7 @@
 
 module OTT.Coerce where
 
+open import OTT.Prelude
 open import OTT.Core
 
 Coerce : ∀ {k₁ k₂} -> ⟦ k₁ ≟ᵇ k₂ ⟧ -> Univ k₁ -> Univ k₂

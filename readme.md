@@ -17,15 +17,15 @@ elimFinₑ P f x (node (here  (m , [] , q)))            = x q
 elimFinₑ P f x (node (there (here (m , i ∷ [] , q)))) = f q (elimFinₑ P f x i)
 elimFinₑ P f x (node (there (there ())))
 
-elimFin : ∀ {n π}
-        -> (P : ∀ {n} -> Fin n -> Univ π)
+elimFin : ∀ {n k}
+        -> (P : ∀ {n} -> Fin n -> Univ k)
         -> (∀ {n} {i : Fin n} -> ⟦ P i ⇒ P (fsuc i) ⟧)
         -> (∀ {n} -> ⟦ P {suc n} fzero ⟧)
         -> (i : Fin n)
         -> ⟦ P i ⟧
 elimFin P f x = elimFinₑ (⟦_⟧ ∘ P)
-  (λ {n m i} q r -> subst₂ (λ p q -> P {p} (fsucₑ q i)) q (huip (suc n) m q) (f r))
-  (λ {n m}   q   -> subst₂ (λ p q -> P {p} (fzeroₑ q))  q (huip (suc n) m q)  x)
+  (λ {n m i} q r -> subst₂ (λ m q -> P {m} (fsucₑ q i)) q (huip (suc n) m q) (f r))
+  (λ {n m}   q   -> subst₂ (λ m q -> P {m} (fzeroₑ q))  q (huip (suc n) m q)  x)
 ```
 
 `elimFinₑ` is an "up to propositional equality" eliminator. The thing here is that `elimFinₑ` doesn't contain any coercions at all, so its "non-dependent" computational behaviour is the same as the corresponding behaviour of an eliminator in an intensional type theory. It even gives you slightly more:
@@ -68,9 +68,9 @@ A model of the model can be found [here](https://github.com/effectfully/random-s
   
   I'm not aware of such encoding. The best seems to be [3], but as far as I understand only (1) and (2) hold for it. It's probably possible to add (4) by introducing a super universe in the style of [5] like [this](https://github.com/effectfully/random-stuff/blob/master/Omega.agda).
 
-- Definional proof irrelevance.
+- Definitional proof irrelevance.
 
-- Erasing of stuck coercions between definitionally equal sets (that's not my fault, Agda just doesn't have an available definitional equality checker) (note that we have proper eliminators without this tool unlike in OTT with W-types (see [4])).
+- Erasion of stuck coercions between definitionally equal sets (that's not my fault, Agda just doesn't have an available definitional equality checker) (note that we have proper eliminators without this tool unlike in OTT with W-types (see [4])).
 
 - Equality for propositions should be isomorphism.
 

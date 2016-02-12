@@ -13,19 +13,9 @@ elimFinₑ : ∀ {n π}
          -> (∀ {n m} -> (q : ⟦ suc n ≅ m ⟧) -> P {m} (fzeroₑ q))
          -> (i : Fin n)
          -> P i
-elimFinₑ P f x (node (here  (m , [] , q)))            = x q
-elimFinₑ P f x (node (there (here (m , i ∷ [] , q)))) = f q (elimFinₑ P f x i)
-elimFinₑ P f x (node (there (there ())))
-
-elimFin : ∀ {n k}
-        -> (P : ∀ {n} -> Fin n -> Univ k)
-        -> (∀ {n} {i : Fin n} -> ⟦ P i ⇒ P (fsuc i) ⟧)
-        -> (∀ {n} -> ⟦ P {suc n} fzero ⟧)
-        -> (i : Fin n)
-        -> ⟦ P i ⟧
-elimFin P f x = elimFinₑ (⟦_⟧ ∘ P)
-  (λ {n m i} q r -> subst₂ (λ m q -> P {m} (fsucₑ q i)) q (huip (suc n) m q) (f r))
-  (λ {n m}   q   -> subst₂ (λ m q -> P {m} (fzeroₑ q))  q (huip (suc n) m q)  x)
+elimFinₑ P f x (#₀ (m , []     , q)) = x q
+elimFinₑ P f x (#₁ (m , i ∷ [] , q)) = f q (elimFinₑ P f x i)
+elimFinₑ P f x  ⟨⟩₂
 ```
 
 `elimFinₑ` is an "up to propositional equality" eliminator. The thing here is that `elimFinₑ` doesn't contain any coercions at all, so its "non-dependent" computational behaviour is the same as the corresponding behaviour of an eliminator in an intensional type theory. It even gives you slightly more:
@@ -40,7 +30,30 @@ elimFin′ : ∀ {n π}
 elimFin′ P f x = elimFinₑ (P ∘ fromFin) (λ {n m i} _ -> f {i = i}) (const x)
 ```
 
-`elimFin′` doesn't mention `coerce` as well. `subst₂` is defined in terms of `coerce`, so it computes under constructors of data types, hence classical eliminators have pretty good computational behaviour too.
+`elimFin′` doesn't mention `coerce` as well.
+
+We can recover the usual eliminator with the help from our old friend
+
+```
+J : ∀ {k s} {A : Univ k} {x y : ⟦ A ⟧}
+  -> (P : (y : ⟦ A ⟧) -> ⟦ x ≅ y ⟧ -> Univ s)
+  -> ⟦ P _ (refl x) ⟧
+  -> (q : ⟦ x ≅ y ⟧)
+  -> ⟦ P _ q ⟧
+J {x = x} P z q = subst₂ P q (huip x q) z
+
+elimFin : ∀ {n k}
+        -> (P : ∀ {n} -> Fin n -> Univ k)
+        -> (∀ {n} {i : Fin n} -> ⟦ P i ⇒ P (fsuc i) ⟧)
+        -> (∀ {n} -> ⟦ P {suc n} fzero ⟧)
+        -> (i : Fin n)
+        -> ⟦ P i ⟧
+elimFin P f x = elimFinₑ (⟦_⟧ ∘ P)
+  (λ q r -> J (λ m q -> P {m} (fsucₑ q _)) (f r) q)
+  (J (λ m q -> P {m} (fzeroₑ q)) x)
+```
+
+`subst₂` is defined in terms of `coerce`, so it computes under constructors of data types, hence classical eliminators have pretty good computational behaviour too.
 
 A simple test:
 
@@ -70,7 +83,7 @@ A model of the model can be found [here](https://github.com/effectfully/random-s
 
 - Definitional proof irrelevance.
 
-- Erasion of stuck coercions between definitionally equal sets (that's not my fault, Agda just doesn't have an available definitional equality checker) (note that we have proper eliminators without this tool unlike in OTT with W-types (see [4])).
+- Erasion of stuck coercions between definitionally equal sets (that's not my fault, Agda just doesn't have an available definitional equality checker) (note that we have proper eliminators without this tool unlike in OTT with W-types (and they are still improper, see [4])).
 
 - Equality for propositions should be isomorphism.
 

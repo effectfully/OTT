@@ -9,10 +9,10 @@ Fin : ℕ -> Set
 Fin n = ⟦ fin n ⟧
 
 fzeroₑ : ∀ {n m} -> ⟦ suc n ≅ m ⟧ -> Fin m
-fzeroₑ {n} q = node $ 0 # n , [] , q
+fzeroₑ {n} q = #₀ (n , [] , q)
 
 fsucₑ : ∀ {n m} -> ⟦ suc n ≅ m ⟧ -> Fin n -> Fin m
-fsucₑ {n} q i = node $ 1 # n , i ∷ [] , q
+fsucₑ {n} q i = #₁ (n , i ∷ [] , q)
 
 fzero : ∀ {n} -> Fin (suc n)
 fzero {n} = fzeroₑ {n} (refl (suc n))
@@ -26,9 +26,9 @@ elimFinₑ : ∀ {n π}
          -> (∀ {n m} -> (q : ⟦ suc n ≅ m ⟧) -> P {m} (fzeroₑ q))
          -> (i : Fin n)
          -> P i
-elimFinₑ P f x (node (here  (m , [] , q)))            = x q
-elimFinₑ P f x (node (there (here (m , i ∷ [] , q)))) = f q (elimFinₑ P f x i)
-elimFinₑ P f x (node (there (there ())))
+elimFinₑ P f x (#₀ (m , []     , q)) = x q
+elimFinₑ P f x (#₁ (m , i ∷ [] , q)) = f q (elimFinₑ P f x i)
+elimFinₑ P f x  ⟨⟩₂
 
 foldFin : ∀ {n π} {P : Set π} -> (P -> P) -> P -> Fin n -> P
 foldFin f x = elimFinₑ _ (const f) (const x)
@@ -51,8 +51,8 @@ elimFin : ∀ {n k}
         -> (i : Fin n)
         -> ⟦ P i ⟧
 elimFin P f x = elimFinₑ (⟦_⟧ ∘ P)
-  (λ {n m i} q r -> subst₂ (λ m q -> P {m} (fsucₑ q i)) q (huip (suc n) m q) (f r))
-  (λ {n m}   q   -> subst₂ (λ m q -> P {m} (fzeroₑ q))  q (huip (suc n) m q)  x)
+  (λ q r -> J (λ m q -> P {m} (fsucₑ q _)) (f r) q)
+  (J (λ m q -> P {m} (fzeroₑ q)) x)
 
 
 

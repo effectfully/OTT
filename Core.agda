@@ -119,3 +119,16 @@ here  p₁   ≅c here  p₂   = let x₁ , rs₁ , q₁ = p₁ ; x₂ , rs₂ ,
 there chs₁ ≅c there chs₂ = chs₁ ≅c chs₂
 here  _    ≅c there _    = bot
 there _    ≅c here  _    = bot
+
+pattern #₀ y = node (here y)
+pattern #₁ y = node (there (here y))
+pattern #₂ y = node (there (there (here y)))
+pattern #₃ y = node (there (there (there (here y))))
+pattern #₄ y = node (there (there (there (there (here y)))))
+pattern #₅ y = node (there (there (there (there (there (here y))))))
+
+pattern ⟨⟩₁ = node (there ())
+pattern ⟨⟩₂ = node (there (there ()))
+pattern ⟨⟩₃ = node (there (there (there ())))
+pattern ⟨⟩₄ = node (there (there (there (there ()))))
+pattern ⟨⟩₅ = node (there (there (there (there (there ())))))

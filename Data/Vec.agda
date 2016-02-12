@@ -11,10 +11,10 @@ Vec : ∀ {k} -> Univ k -> ℕ -> Set
 Vec A n = ⟦ vec A n ⟧
 
 vnilₑ : ∀ {m k} {A : Univ k} -> ⟦ 0 ≅ m ⇒ vec A m ⟧
-vnilₑ q = node $ 0 # , [] , q
+vnilₑ q = #₀ (, [] , q)
 
 vconsₑ : ∀ {n m k} {A : Univ k} -> ⟦ suc n ≅ m ⇒ A ⇒ vec A n ⇒ vec A m ⟧
-vconsₑ {n} q x xs = node $ 1 # (n , x) , xs ∷ [] , q
+vconsₑ {n} q x xs = #₁ ((n , x) , xs ∷ [] , q)
 
 []ᵥ : ∀ {k} {A : Univ k} -> Vec A 0
 []ᵥ = vnilₑ (refl 0)
@@ -29,9 +29,9 @@ elimVecₑ : ∀ {n k π} {A : Univ k}
          -> (∀ {m} -> (q : ⟦ 0 ≅ m ⟧) -> P {m} (vnilₑ q))
          -> (xs : Vec A n)
          -> P xs
-elimVecₑ P f z (node (here  (, [] , q)))                    = z q
-elimVecₑ P f z (node (there (here ((n , x), xs ∷ [] , q)))) = f q x (elimVecₑ P f z xs)
-elimVecₑ P f z (node (there (there ())))
+elimVecₑ P f z (#₀ (, [] , q))             = z q
+elimVecₑ P f z (#₁ ((n , x), xs ∷ [] , q)) = f q x (elimVecₑ P f z xs)
+elimVecₑ P f z  ⟨⟩₂
 
 foldVec : ∀ {n k π} {A : Univ k} {P : Set π} -> (⟦ A ⟧ -> P -> P) -> P -> Vec A n -> P
 foldVec f z = elimVecₑ _ (const f) (const z)
@@ -54,5 +54,5 @@ elimVec : ∀ {n k s} {A : Univ k}
         -> (xs : Vec A n)
         -> ⟦ P xs ⟧
 elimVec P f z = elimVecₑ (⟦_⟧ ∘ P)
-  (λ {n m xs} q x r -> subst₂ (λ m q -> P {m} (vconsₑ q x xs)) q (huip (suc n) m q) (f x r))
-  (λ {m}      q     -> subst₂ (λ m q -> P {m} (vnilₑ q))       q (huip 0 m q)        z)
+  (λ {n m xs} q x r -> J (λ m q -> P {m} (vconsₑ q x xs)) (f x r) q)
+  (λ {m}      q     -> J (λ m q -> P {m} (vnilₑ q)) z q)

@@ -135,7 +135,7 @@ mutual
     coherence : ∀ {k s} {A : Univ k} {B : Univ s}
               -> (q : ⟦ A ≃ B ⟧) -> (x : ⟦ A ⟧) -> ⟦ x ≅ coerce q x ⟧
     huip      : ∀ {k s} {A : Univ k} {B : Univ s}
-              -> (x : ⟦ A ⟧) -> (y : ⟦ B ⟧) -> (q : ⟦ x ≅ y ⟧) -> ⟦ refl x ≅ q ⟧
+              -> (x : ⟦ A ⟧) {y : ⟦ B ⟧} -> (q : ⟦ x ≅ y ⟧) -> ⟦ refl x ≅ q ⟧
     cong-≅z   : ∀ {k s t} {A : Univ k} {B : Univ s} {C : Univ t} {y : ⟦ B ⟧} {z : ⟦ C ⟧}
               -> (x : ⟦ A ⟧) -> (q : ⟦ x ≅ y ⟧) -> ⟦ (x ≅ z) ≃ (y ≅ z)⟧
 
@@ -158,6 +158,13 @@ mutual
 subst : ∀ {k s} {A : Univ k} {x y} -> (P : ⟦ A ⟧ -> Univ s) -> ⟦ x ≅ y ⇒ P x ⇒ P y ⟧
 subst P q = coerce (refl P _ _ q)
 
-subst₂ : ∀ {k s π} {A : Univ k} {B : ⟦ A ⟧ -> Univ s} {i j} {x : ⟦ B i ⟧} {y : ⟦ B j ⟧}
-       -> (P : ∀ x -> ⟦ B x ⟧ -> Univ π) -> ⟦ i ≅ j ⇒ x ≅ y ⇒ P i x ⇒ P j y ⟧
+subst₂ : ∀ {k s t} {A : Univ k} {B : ⟦ A ⟧ -> Univ s} {i j} {x : ⟦ B i ⟧} {y : ⟦ B j ⟧}
+       -> (P : ∀ x -> ⟦ B x ⟧ -> Univ t) -> ⟦ i ≅ j ⇒ x ≅ y ⇒ P i x ⇒ P j y ⟧
 subst₂ P q₁ q₂ = coerce (refl P _ _ q₁ _ _ q₂)
+
+J : ∀ {k s} {A : Univ k} {x y : ⟦ A ⟧}
+  -> (P : (y : ⟦ A ⟧) -> ⟦ x ≅ y ⟧ -> Univ s)
+  -> ⟦ P _ (refl x) ⟧
+  -> (q : ⟦ x ≅ y ⟧)
+  -> ⟦ P _ q ⟧
+J {x = x} P z q = subst₂ P q (huip x q) z

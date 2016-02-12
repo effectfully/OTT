@@ -5,7 +5,7 @@ open import Data.Empty public
 open import Data.Unit.Base using (⊤; tt) public
 open import Data.Bool.Base hiding (_≟_) public
 open import Data.Nat.Base public
-open import Data.List.Base hiding (zip) renaming (map to lmap) public
+open import Data.List.Base hiding ([_]; zip) renaming (map to lmap) public
 open import Data.List.Any using (Any; here; there) public
 open import Data.List.All using (All; []; _∷_) public
 open import Data.Product hiding (,_) renaming (map to pmap) public
@@ -52,6 +52,7 @@ injAt⁺  []       ()     p
 injAt⁺ (x ∷ xs)  zero   p = here p
 injAt⁺ (x ∷ xs) (suc i) p = there (injAt⁺ xs i p)
 
+-- I'm using ad hoc `#₀', `#₁', `#₂'... instead because they are defined as pattern synonyms.
 module _ {α π} {A : Set α} {P : A -> Set π} n {p : A ^ n} where
   infix 2 _#_
 

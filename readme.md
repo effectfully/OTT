@@ -4,6 +4,39 @@ It's an implementation of Observational Type Theory as an Agda library. The univ
 
 ## Implemented
 
+ - Equality for propositions is isomorphism. Equal types are equal either weakly
+
+ ```
+ _≈_  : ∀ {k s} -> Univ k -> Univ s -> Prop
+ _≈_ {false} {false} A₁ A₂ = A₁ ⇒ A₂ & A₂ ⇒ A₁
+ _≈_ {true } {true } A₁ A₂ = A₁ ≃ A₂
+ _≈_                 _  _  = bot
+ ```
+
+ or strictly
+
+ ```
+ _≃_  : ∀ {k s} -> Univ k -> Univ s -> Prop
+ bot     ≃ bot     = top
+ top     ≃ top     = top
+ σ A₁ B₁ ≃ σ A₂ B₂ = A₁ ≈ A₂ & B₁ ≅ B₂
+ ...
+ ```
+
+ This way we can avoid explicit liftings of propositions into `Type`, which introduce ambiguity (`lift A ⇒ lift B` has the same meaning as `lift (A ⇒ B)`, but the codes are different). But clearly we want cumulativity, so this is not a proper solution.
+
+ Correspondingly, there are two `coerce`s: one which requires weak equality
+
+ ```
+ coerce : ∀ {k s} {A : Univ k} {B : Univ s} -> ⟦ A ≈ B ⇒ A ⇒ B ⟧
+ ```
+
+ and one which requires strict
+
+ ```
+ coerce′ : ∀ {k s} {A : Univ k} {B : Univ s} -> ⟦ A ≃ B ⇒ A ⇒ B ⟧
+ ```
+
  - `rose` allows to define inductive data types (including inductive families) in the target theory. `coerce` computes under constructors of any inductive family defined in terms of `rose`. This is achieved via the trick described in the section 5 of [1]. `rose` also allows to define eliminators of data types (even in an intensional type theory). Each data type has at least two eliminators: one classical and one "up to propositional equality". An example from the `OTT.Data.Fin` module:
 
 ```
@@ -84,8 +117,6 @@ A model of the model can be found [here](https://github.com/effectfully/random-s
 - Definitional proof irrelevance.
 
 - Erasion of stuck coercions between definitionally equal types (that's not my fault, Agda just doesn't have an available definitional equality checker) (note that we have proper eliminators without this tool unlike in OTT with W-types (and they are still improper, see [4])).
-
-- Equality for propositions should be isomorphism.
 
 - Codata (is it simply the coinductive counterpart of `rose`?).
 

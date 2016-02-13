@@ -9,7 +9,7 @@ record Unit : Set where
 
 infixr 1 _&_
 infixr 2 _⇒_
-infix  3 _≃_ _≅_ _≅s_ _≅a_ _≅c_
+infix  3 _≈_ _≃_ _≅_ _≅s_ _≅a_ _≅c_
 
 data Univ : Bool -> Set
 
@@ -18,6 +18,7 @@ Type = Univ true
 
 ⟦_⟧ : ∀ {k} -> Univ k -> Set
 
+_≈_  : ∀ {k s} -> Univ k -> Univ s -> Prop
 _≃_  : ∀ {k s} -> Univ k -> Univ s -> Prop
 _≅_  : ∀ {k s} {A : Univ k} {B : Univ s} -> ⟦ A ⟧ -> ⟦ B ⟧ -> Prop
 _≅s_ : ∀ {k s} {A : Univ k} {B : Univ s} -> List ⟦ A ⟧ -> List ⟦ B ⟧ -> Prop
@@ -82,14 +83,18 @@ _≟ⁿ_ : ℕ -> ℕ -> Prop
 suc n ≟ⁿ suc m = n ≟ⁿ m
 _     ≟ⁿ _     = bot
 
+_≈_ {false} {false} A₁ A₂ = A₁ ⇒ A₂ & A₂ ⇒ A₁
+_≈_ {true } {true } A₁ A₂ = A₁ ≃ A₂
+_≈_                 _  _  = bot
+
 bot         ≃ bot         = top
 top         ≃ top         = top
 unit        ≃ unit        = top
 nat         ≃ nat         = top
 univ k₁     ≃ univ k₂     = k₁ ≟ᵇ k₂
-σ A₁ B₁     ≃ σ A₂ B₂     = A₁ ≃ A₂ & B₁ ≅ B₂
-π A₁ B₁     ≃ π A₂ B₂     = A₂ ≃ A₁ & π _ λ x₁ -> π _ λ x₂ -> x₂ ≅ x₁ ⇒ B₁ x₁ ≃ B₂ x₂
-list A₁     ≃ list A₂     = A₁ ≃ A₂
+σ A₁ B₁     ≃ σ A₂ B₂     = A₁ ≈ A₂ & B₁ ≅ B₂
+π A₁ B₁     ≃ π A₂ B₂     = A₂ ≈ A₁ & π _ λ x₁ -> π _ λ x₂ -> x₂ ≅ x₁ ⇒ B₁ x₁ ≈ B₂ x₂
+list A₁     ≃ list A₂     = A₁ ≈ A₂
 rose cs₁ i₁ ≃ rose cs₂ i₂ = cs₁ ≅ cs₂ & i₂ ≅ i₁
 _           ≃ _           = bot
 
@@ -97,7 +102,7 @@ _≅_ {A = bot        } {bot        } _   _   = top
 _≅_ {A = top        } {top        } _   _   = top
 _≅_ {A = unit       } {unit       } _   _   = top
 _≅_ {A = nat        } {nat        } n₁  n₂  = n₁ ≟ⁿ n₂
-_≅_ {A = univ k₁    } {univ k₂    } A₁  A₂  = A₁ ≃ A₂
+_≅_ {A = univ k₁    } {univ k₂    } A₁  A₂  = A₁ ≈ A₂
 _≅_ {A = σ A₁ B₁    } {σ A₂ B₂    } p₁  p₂  = let x₁ , y₁ = p₁ ; x₂ , y₂ = p₂ in x₁ ≅ x₂ & y₁ ≅ y₂
 _≅_ {A = π A₁ B₁    } {π A₂ B₂    } f₁  f₂  = π _ λ x₁ -> π _ λ x₂ -> x₁ ≅ x₂ ⇒ f₁ x₁ ≅ f₂ x₂
 _≅_ {A = list A₁    } {list A₂    } xs₁ xs₂ = xs₁ ≅s xs₂

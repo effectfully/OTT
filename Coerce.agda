@@ -12,90 +12,96 @@ Coerce {false} {true } () A
 Coerce {true } {false} () A
 
 mutual
-  coerce : ∀ {α β} {A : Univ α} {B : Univ β} -> ⟦ A ≃ B ⟧ -> ⟦ A ⟧ -> ⟦ B ⟧
-  coerce {A = bot        } {bot        } q ()
-  coerce {A = top        } {top        } q _  = _
-  coerce {A = unit       } {unit       } q _  = _
-  coerce {A = nat        } {nat        } q n  = n
-  coerce {A = univ k₁    } {univ k₂    } q A  = Coerce q A
-  coerce {A = σ A₁ B₁    } {σ A₂ B₂    } q p  = let q₁ , q₂ = q ; x , y = p in
+  coerce : ∀ {k s} {A : Univ k} {B : Univ s} -> ⟦ A ≈ B ⇒ A ⇒ B ⟧
+  coerce {false} {false} (f , _) = f
+  coerce {true } {true }  q      = coerce′ q
+  coerce {false} {true }  ()
+  coerce {true } {false}  ()
+
+  coerce′ : ∀ {k s} {A : Univ k} {B : Univ s} -> ⟦ A ≃ B ⇒ A ⇒ B ⟧
+  coerce′ {A = bot        } {bot        } q ()
+  coerce′ {A = top        } {top        } q _  = _
+  coerce′ {A = unit       } {unit       } q _  = _
+  coerce′ {A = nat        } {nat        } q n  = n
+  coerce′ {A = univ k₁    } {univ k₂    } q A  = Coerce q A
+  coerce′ {A = σ A₁ B₁    } {σ A₂ B₂    } q p  = let q₁ , q₂ = q ; x , y = p in
     coerce q₁ x , coerce (q₂ x (coerce q₁ x) (coherence q₁ x)) y
-  coerce {A = π A₁ B₁    } {π A₂ B₂    } q f  = let q₁ , q₂ = q in
+  coerce′ {A = π A₁ B₁    } {π A₂ B₂    } q f  = let q₁ , q₂ = q in
     λ x -> coerce (q₂ (coerce q₁ x) x (coherence q₁ x)) (f (coerce q₁ x))
-  coerce {A = list  A₁   } {list A₂    } q xs = lmap (coerce q) xs
-  coerce {A = rose cs₁ i₁} {rose cs₂ i₂} q r  = coerceRose q r
-  coerce {A = bot     } {top     } ()
-  coerce {A = bot     } {unit    } ()
-  coerce {A = bot     } {nat     } ()
-  coerce {A = bot     } {univ _  } ()
-  coerce {A = bot     } {σ _ _   } ()
-  coerce {A = bot     } {π _ _   } ()
-  coerce {A = bot     } {list _  } ()
-  coerce {A = bot     } {rose _ _} ()
-  coerce {A = top     } {bot     } ()
-  coerce {A = top     } {unit    } ()
-  coerce {A = top     } {nat     } ()
-  coerce {A = top     } {univ _  } ()
-  coerce {A = top     } {σ _ _   } ()
-  coerce {A = top     } {π _ _   } ()
-  coerce {A = top     } {list _  } ()
-  coerce {A = top     } {rose _ _} ()
-  coerce {A = unit    } {bot     } ()
-  coerce {A = unit    } {top     } ()
-  coerce {A = unit    } {nat     } ()
-  coerce {A = unit    } {univ _  } ()
-  coerce {A = unit    } {σ _ _   } ()
-  coerce {A = unit    } {π _ _   } ()
-  coerce {A = unit    } {list _  } ()
-  coerce {A = unit    } {rose _ _} ()
-  coerce {A = nat     } {bot     } ()
-  coerce {A = nat     } {top     } ()
-  coerce {A = nat     } {unit    } ()
-  coerce {A = nat     } {univ _  } ()
-  coerce {A = nat     } {σ _ _   } ()
-  coerce {A = nat     } {π _ _   } ()
-  coerce {A = nat     } {list _  } ()
-  coerce {A = nat     } {rose _ _} ()
-  coerce {A = univ _  } {bot     } ()
-  coerce {A = univ _  } {top     } ()
-  coerce {A = univ _  } {unit    } ()
-  coerce {A = univ _  } {nat     } ()
-  coerce {A = univ _  } {σ _ _   } ()
-  coerce {A = univ _  } {π _ _   } ()
-  coerce {A = univ _  } {list _  } ()
-  coerce {A = univ _  } {rose _ _} ()
-  coerce {A = σ _ _   } {bot     } ()
-  coerce {A = σ _ _   } {top     } ()
-  coerce {A = σ _ _   } {unit    } ()
-  coerce {A = σ _ _   } {nat     } ()
-  coerce {A = σ _ _   } {univ _  } ()
-  coerce {A = σ _ _   } {π _ _   } ()
-  coerce {A = σ _ _   } {list _  } ()
-  coerce {A = σ _ _   } {rose _ _} ()
-  coerce {A = π _ _   } {bot     } ()
-  coerce {A = π _ _   } {top     } ()
-  coerce {A = π _ _   } {unit    } ()
-  coerce {A = π _ _   } {nat     } ()
-  coerce {A = π _ _   } {univ _  } ()
-  coerce {A = π _ _   } {σ _ _   } ()
-  coerce {A = π _ _   } {list _  } ()
-  coerce {A = π _ _   } {rose _ _} ()
-  coerce {A = list _  } {bot     } ()
-  coerce {A = list _  } {top     } ()
-  coerce {A = list _  } {unit    } ()
-  coerce {A = list _  } {nat     } ()
-  coerce {A = list _  } {univ _  } ()
-  coerce {A = list _  } {σ _ _   } ()
-  coerce {A = list _  } {π _ _   } ()
-  coerce {A = list _  } {rose _ _} ()
-  coerce {A = rose _ _} {bot     } ()
-  coerce {A = rose _ _} {top     } ()
-  coerce {A = rose _ _} {unit    } ()
-  coerce {A = rose _ _} {nat     } ()
-  coerce {A = rose _ _} {univ _  } ()
-  coerce {A = rose _ _} {σ _ _   } ()
-  coerce {A = rose _ _} {π _ _   } ()
-  coerce {A = rose _ _} {list _  } ()
+  coerce′ {A = list  A₁   } {list A₂    } q xs = lmap (coerce q) xs
+  coerce′ {A = rose cs₁ i₁} {rose cs₂ i₂} q r  = coerceRose q r
+  coerce′ {A = bot     } {top     } ()
+  coerce′ {A = bot     } {unit    } ()
+  coerce′ {A = bot     } {nat     } ()
+  coerce′ {A = bot     } {univ _  } ()
+  coerce′ {A = bot     } {σ _ _   } ()
+  coerce′ {A = bot     } {π _ _   } ()
+  coerce′ {A = bot     } {list _  } ()
+  coerce′ {A = bot     } {rose _ _} ()
+  coerce′ {A = top     } {bot     } ()
+  coerce′ {A = top     } {unit    } ()
+  coerce′ {A = top     } {nat     } ()
+  coerce′ {A = top     } {univ _  } ()
+  coerce′ {A = top     } {σ _ _   } ()
+  coerce′ {A = top     } {π _ _   } ()
+  coerce′ {A = top     } {list _  } ()
+  coerce′ {A = top     } {rose _ _} ()
+  coerce′ {A = unit    } {bot     } ()
+  coerce′ {A = unit    } {top     } ()
+  coerce′ {A = unit    } {nat     } ()
+  coerce′ {A = unit    } {univ _  } ()
+  coerce′ {A = unit    } {σ _ _   } ()
+  coerce′ {A = unit    } {π _ _   } ()
+  coerce′ {A = unit    } {list _  } ()
+  coerce′ {A = unit    } {rose _ _} ()
+  coerce′ {A = nat     } {bot     } ()
+  coerce′ {A = nat     } {top     } ()
+  coerce′ {A = nat     } {unit    } ()
+  coerce′ {A = nat     } {univ _  } ()
+  coerce′ {A = nat     } {σ _ _   } ()
+  coerce′ {A = nat     } {π _ _   } ()
+  coerce′ {A = nat     } {list _  } ()
+  coerce′ {A = nat     } {rose _ _} ()
+  coerce′ {A = univ _  } {bot     } ()
+  coerce′ {A = univ _  } {top     } ()
+  coerce′ {A = univ _  } {unit    } ()
+  coerce′ {A = univ _  } {nat     } ()
+  coerce′ {A = univ _  } {σ _ _   } ()
+  coerce′ {A = univ _  } {π _ _   } ()
+  coerce′ {A = univ _  } {list _  } ()
+  coerce′ {A = univ _  } {rose _ _} ()
+  coerce′ {A = σ _ _   } {bot     } ()
+  coerce′ {A = σ _ _   } {top     } ()
+  coerce′ {A = σ _ _   } {unit    } ()
+  coerce′ {A = σ _ _   } {nat     } ()
+  coerce′ {A = σ _ _   } {univ _  } ()
+  coerce′ {A = σ _ _   } {π _ _   } ()
+  coerce′ {A = σ _ _   } {list _  } ()
+  coerce′ {A = σ _ _   } {rose _ _} ()
+  coerce′ {A = π _ _   } {bot     } ()
+  coerce′ {A = π _ _   } {top     } ()
+  coerce′ {A = π _ _   } {unit    } ()
+  coerce′ {A = π _ _   } {nat     } ()
+  coerce′ {A = π _ _   } {univ _  } ()
+  coerce′ {A = π _ _   } {σ _ _   } ()
+  coerce′ {A = π _ _   } {list _  } ()
+  coerce′ {A = π _ _   } {rose _ _} ()
+  coerce′ {A = list _  } {bot     } ()
+  coerce′ {A = list _  } {top     } ()
+  coerce′ {A = list _  } {unit    } ()
+  coerce′ {A = list _  } {nat     } ()
+  coerce′ {A = list _  } {univ _  } ()
+  coerce′ {A = list _  } {σ _ _   } ()
+  coerce′ {A = list _  } {π _ _   } ()
+  coerce′ {A = list _  } {rose _ _} ()
+  coerce′ {A = rose _ _} {bot     } ()
+  coerce′ {A = rose _ _} {top     } ()
+  coerce′ {A = rose _ _} {unit    } ()
+  coerce′ {A = rose _ _} {nat     } ()
+  coerce′ {A = rose _ _} {univ _  } ()
+  coerce′ {A = rose _ _} {σ _ _   } ()
+  coerce′ {A = rose _ _} {π _ _   } ()
+  coerce′ {A = rose _ _} {list _  } ()
     -- generated by http://ideone.com/5CZJxt
 
   coerceAll : ∀ {k} {A₁ A₂ : Type} {B₁ : ⟦ A₁ ⟧ -> Univ k} {B₂ : ⟦ A₂ ⟧ -> Univ k} {xs₁ xs₂}
@@ -108,7 +114,7 @@ mutual
     coerce (Bq _ _ q₁) y ∷ coerceAll Bq q₂ ys
   coerceAll {xs₂ = _ ∷ _} Bq ()  []
   coerceAll {xs₂ = []   } Bq () (y ∷ ys)
-  
+
   coerceChilds : ∀ {I₁ I₂} {cs₁ ds₁ : Desc I₁} {cs₂ ds₂ : Desc I₂} {i₂ i₁}
                -> ⟦ rose cs₁ i₁ ≅ rose cs₂ i₂ ⟧
                -> ⟦ rose ds₁ i₁ ≅ rose ds₂ i₂ ⟧
@@ -133,23 +139,23 @@ mutual
   postulate
     refl      : ∀ {k} {A : Univ k} -> (x : ⟦ A ⟧) -> ⟦ x ≅ x ⟧
     coherence : ∀ {k s} {A : Univ k} {B : Univ s}
-              -> (q : ⟦ A ≃ B ⟧) -> (x : ⟦ A ⟧) -> ⟦ x ≅ coerce q x ⟧
+              -> (q : ⟦ A ≈ B ⟧) -> (x : ⟦ A ⟧) -> ⟦ x ≅ coerce q x ⟧
+    cong-≅z   : ∀ {k s t} {A : Univ k} {B : Univ s} {C : Univ t}
+              -> (x : ⟦ A ⟧) {y : ⟦ B ⟧} {z : ⟦ C ⟧} -> (q : ⟦ x ≅ y ⟧) -> ⟦ (x ≅ z) ≈ (y ≅ z)⟧
     huip      : ∀ {k s} {A : Univ k} {B : Univ s}
               -> (x : ⟦ A ⟧) {y : ⟦ B ⟧} -> (q : ⟦ x ≅ y ⟧) -> ⟦ refl x ≅ q ⟧
-    cong-≅z   : ∀ {k s t} {A : Univ k} {B : Univ s} {C : Univ t} {y : ⟦ B ⟧} {z : ⟦ C ⟧}
-              -> (x : ⟦ A ⟧) -> (q : ⟦ x ≅ y ⟧) -> ⟦ (x ≅ z) ≃ (y ≅ z)⟧
 
-  right : ∀ {k s t} {A : Univ k} {B : Univ s} {C : Univ t} {y : ⟦ B ⟧} {z : ⟦ C ⟧}
-        -> (x : ⟦ A ⟧) -> ⟦ x ≅ y ⟧ -> ⟦ x ≅ z ⟧ -> ⟦ y ≅ z ⟧
-  right x q₁ q₂ = coerce (cong-≅z x q₁) q₂
-  
-  sym : ∀ {k s} {A : Univ k} {B : Univ s}
-      -> (x : ⟦ A ⟧) {y : ⟦ B ⟧} -> ⟦ x ≅ y ⟧ -> ⟦ y ≅ x ⟧
-  sym x q = right x q (refl x)
+  right : ∀ {k s t} {A : Univ k} {B : Univ s} {C : Univ t}
+        -> (x : ⟦ A ⟧) {y : ⟦ B ⟧} {z : ⟦ C ⟧} -> ⟦ x ≅ y ⟧ -> ⟦ x ≅ z ⟧ -> ⟦ y ≅ z ⟧
+  right x q₁ = proj₁ (cong-≅z x q₁)
 
   trans : ∀ {k s t} {A : Univ k} {B : Univ s} {C : Univ t}
         -> (x : ⟦ A ⟧) {y : ⟦ B ⟧} {z : ⟦ C ⟧} -> ⟦ x ≅ y ⟧ -> ⟦ y ≅ z ⟧ -> ⟦ x ≅ z ⟧
-  trans x {y} q₁ q₂ = right y (sym x q₁) q₂
+  trans x {y} q₁ = proj₂ (cong-≅z x q₁)
+
+  sym : ∀ {k s} {A : Univ k} {B : Univ s}
+      -> (x : ⟦ A ⟧) {y : ⟦ B ⟧} -> ⟦ x ≅ y ⟧ -> ⟦ y ≅ x ⟧
+  sym x q = right x q (refl x)
 
   left : ∀ {k s t} {A : Univ k} {B : Univ s} {C : Univ t}
        -> (x : ⟦ A ⟧) {y : ⟦ B ⟧} {z : ⟦ C ⟧} -> ⟦ x ≅ y ⟧ -> ⟦ z ≅ y ⟧ -> ⟦ x ≅ z ⟧

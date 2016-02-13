@@ -39,68 +39,68 @@ It's an implementation of Observational Type Theory as an Agda library. The univ
 
  - `rose` allows to define inductive data types (including inductive families) in the target theory. `coerce` computes under constructors of any inductive family defined in terms of `rose`. This is achieved via the trick described in the section 5 of [1]. `rose` also allows to define eliminators of data types (even in an intensional type theory). Each data type has at least two eliminators: one classical and one "up to propositional equality". An example from the `OTT.Data.Fin` module:
 
-```
-elimFinₑ : ∀ {n π}
-         -> (P : ∀ {n} -> Fin n -> Set π)
-         -> (∀ {n m} {i : Fin n} -> (q : ⟦ suc n ≅ m ⟧) -> P i -> P {m} (fsucₑ q i))
-         -> (∀ {n m} -> (q : ⟦ suc n ≅ m ⟧) -> P {m} (fzeroₑ q))
+ ```
+ elimFinₑ : ∀ {n π}
+          -> (P : ∀ {n} -> Fin n -> Set π)
+          -> (∀ {n m} {i : Fin n} -> (q : ⟦ suc n ≅ m ⟧) -> P i -> P {m} (fsucₑ q i))
+          -> (∀ {n m} -> (q : ⟦ suc n ≅ m ⟧) -> P {m} (fzeroₑ q))
+          -> (i : Fin n)
+          -> P i
+ elimFinₑ P f x (#₀ (m , []     , q)) = x q
+ elimFinₑ P f x (#₁ (m , i ∷ [] , q)) = f q (elimFinₑ P f x i)
+ elimFinₑ P f x  ⟨⟩₂
+ ```
+
+ `elimFinₑ` is an "up to propositional equality" eliminator. The thing here is that `elimFinₑ` doesn't contain any coercions at all, so its "non-dependent" computational behaviour is the same as the corresponding behaviour of an eliminator in an intensional type theory. It even gives you slightly more:
+
+ ```
+ elimFin′ : ∀ {n π}
+          -> (P : ∀ n -> Set π)
+          -> (∀ {n} {i : Fin n} -> P (fromFin i) -> P (suc (fromFin i)))
+          -> P 0
+          -> (i : Fin n)
+          -> P (fromFin i)
+ elimFin′ P f x = elimFinₑ (P ∘ fromFin) (λ {n m i} _ -> f {i = i}) (const x)
+ ```
+
+ `elimFin′` doesn't mention `coerce` as well.
+
+ We can recover the usual eliminator with the help from our old friend
+
+ ```
+ J : ∀ {k s} {A : Univ k} {x y : ⟦ A ⟧}
+   -> (P : (y : ⟦ A ⟧) -> ⟦ x ≅ y ⟧ -> Univ s)
+   -> ⟦ P _ (refl x) ⟧
+   -> (q : ⟦ x ≅ y ⟧)
+   -> ⟦ P _ q ⟧
+ J {x = x} P z q = subst₂ P q (huip x q) z
+
+ elimFin : ∀ {n k}
+         -> (P : ∀ {n} -> Fin n -> Univ k)
+         -> (∀ {n} {i : Fin n} -> ⟦ P i ⇒ P (fsuc i) ⟧)
+         -> (∀ {n} -> ⟦ P {suc n} fzero ⟧)
          -> (i : Fin n)
-         -> P i
-elimFinₑ P f x (#₀ (m , []     , q)) = x q
-elimFinₑ P f x (#₁ (m , i ∷ [] , q)) = f q (elimFinₑ P f x i)
-elimFinₑ P f x  ⟨⟩₂
-```
+         -> ⟦ P i ⟧
+ elimFin P f x = elimFinₑ (⟦_⟧ ∘ P)
+   (λ q r -> J (λ m q -> P {m} (fsucₑ q _)) (f r) q)
+   (J (λ m q -> P {m} (fzeroₑ q)) x)
+ ```
 
-`elimFinₑ` is an "up to propositional equality" eliminator. The thing here is that `elimFinₑ` doesn't contain any coercions at all, so its "non-dependent" computational behaviour is the same as the corresponding behaviour of an eliminator in an intensional type theory. It even gives you slightly more:
+ `subst₂` is defined in terms of `coerce`, so it computes under constructors of data types, hence classical eliminators have pretty good computational behaviour too.
 
-```
-elimFin′ : ∀ {n π}
-         -> (P : ∀ n -> Set π)
-         -> (∀ {n} {i : Fin n} -> P (fromFin i) -> P (suc (fromFin i)))
-         -> P 0
-         -> (i : Fin n)
-         -> P (fromFin i)
-elimFin′ P f x = elimFinₑ (P ∘ fromFin) (λ {n m i} _ -> f {i = i}) (const x)
-```
+ A simple test:
 
-`elimFin′` doesn't mention `coerce` as well.
+ ```
+ postulate
+   n m : ℕ
 
-We can recover the usual eliminator with the help from our old friend
+ test : ⟦ fromFin ((Fin (3 + n) ∋ fsuc (fsuc fzero)) +ᶠ (Fin (2 + m) ∋ fsuc fzero)) ≅ 3 ⟧
+ test = tt
+ ```
 
-```
-J : ∀ {k s} {A : Univ k} {x y : ⟦ A ⟧}
-  -> (P : (y : ⟦ A ⟧) -> ⟦ x ≅ y ⟧ -> Univ s)
-  -> ⟦ P _ (refl x) ⟧
-  -> (q : ⟦ x ≅ y ⟧)
-  -> ⟦ P _ q ⟧
-J {x = x} P z q = subst₂ P q (huip x q) z
+ `n` and `m` are stuck, but the expression reduces properly regardless of whether `_+ᶠ_` is defined in terms of `elimFin′` or `elimFin`.
 
-elimFin : ∀ {n k}
-        -> (P : ∀ {n} -> Fin n -> Univ k)
-        -> (∀ {n} {i : Fin n} -> ⟦ P i ⇒ P (fsuc i) ⟧)
-        -> (∀ {n} -> ⟦ P {suc n} fzero ⟧)
-        -> (i : Fin n)
-        -> ⟦ P i ⟧
-elimFin P f x = elimFinₑ (⟦_⟧ ∘ P)
-  (λ q r -> J (λ m q -> P {m} (fsucₑ q _)) (f r) q)
-  (J (λ m q -> P {m} (fzeroₑ q)) x)
-```
-
-`subst₂` is defined in terms of `coerce`, so it computes under constructors of data types, hence classical eliminators have pretty good computational behaviour too.
-
-A simple test:
-
-```
-postulate
-  n m : ℕ
-
-test : ⟦ fromFin ((Fin (3 + n) ∋ fsuc (fsuc fzero)) +ᶠ (Fin (2 + m) ∋ fsuc fzero)) ≅ 3 ⟧
-test = tt
-```
-
-`n` and `m` are stuck, but the expression reduces properly regardless of whether `_+ᶠ_` is defined in terms of `elimFin′` or `elimFin`.
-
-A model of the model can be found [here](https://github.com/effectfully/random-stuff/blob/master/Rose/Coercible.agda).
+ A model of the model can be found [here](https://github.com/effectfully/random-stuff/blob/master/Rose/Coercible.agda).
 
 ## Not implemented
 

@@ -130,16 +130,16 @@ x₁ ∷ xs₁ ≅s x₂ ∷ xs₂ = x₁ ≅ x₂ & xs₁ ≅s xs₂
 _        ≅s _        = bot
 
 ret x₁    ≅t ret x₂    = x₁ ≅ x₂
-sig A₁ k₁ ≅t sig A₂ k₂ = k₁ ≅ k₂
+sig A₁ k₁ ≅t sig A₂ k₂ = A₁ ≈ A₂ & k₁ ≅ k₂
 _         ≅t _         = bot
 
-_≅f_ : ∀ {k s} {A₁ A₂ : Type} {B₁ : ⟦ A₁ ⟧ -> Univ k} {B₂ : ⟦ A₂ ⟧ -> Univ s}
+_≅f_ : ∀ {k₁ k₂} {A₁ A₂ : Type} {B₁ : ⟦ A₁ ⟧ -> Univ k₁} {B₂ : ⟦ A₂ ⟧ -> Univ k₂}
      -> ∃ (Fold (λ x -> ⟦ B₁ x ⟧)) -> ∃ (Fold (λ x -> ⟦ B₂ x ⟧)) -> Prop
 ret x₁    , y₁ ≅f ret x₂    , y₂ = x₁ ≅ x₂ & y₁ ≅ y₂
 sig A₁ k₁ , f₁ ≅f sig A₂ k₂ , f₂ = π A₁ λ x₁ -> π A₂ λ x₂ -> x₁ ≅ x₂ ⇒ k₁ x₁ , f₁ x₁ ≅f k₂ x₂ , f₂ x₂
 _              ≅f _              = bot
 
-_≅a_ : ∀ {k s} {A₁ A₂ : Type} {B₁ : ⟦ A₁ ⟧ -> Univ k} {B₂ : ⟦ A₂ ⟧ -> Univ s} {is₁ is₂}
+_≅a_ : ∀ {k₁ k₂} {A₁ A₂ : Type} {B₁ : ⟦ A₁ ⟧ -> Univ k₁} {B₂ : ⟦ A₂ ⟧ -> Univ k₂} {is₁ is₂}
      -> All (Fold (λ x -> ⟦ B₁ x ⟧)) is₁ -> All (Fold (λ x -> ⟦ B₂ x ⟧)) is₂ -> Prop
 []                  ≅a []                  = top
 _∷_ {x = t₁} f₁ fs₁ ≅a _∷_ {x = t₂} f₂ fs₂ = t₁ , f₁ ≅f t₂ , f₂ & fs₁ ≅a fs₂

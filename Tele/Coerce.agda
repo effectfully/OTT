@@ -125,7 +125,7 @@ mutual
 
   coerceTele : {A₁ A₂ : Type} -> ⟦ A₁ ≃ A₂ ⟧ -> Tele ⟦ A₁ ⟧ -> Tele ⟦ A₂ ⟧
   coerceTele q (ret x)   = ret (coerce′ q x)
-  coerceTele q (sig A k) = sig A λ x -> coerceTele q (k x)
+  coerceTele q (pi  A k) = pi  A λ x -> coerceTele q (k x)
 
   coerceFold : ∀ {k₁ k₂} {A₁ A₂ : Type} {B₁ : ⟦ A₁ ⟧ -> Univ k₁} {B₂ : ⟦ A₂ ⟧ -> Univ k₂} {t₂}
              -> ∀ t₁
@@ -134,11 +134,11 @@ mutual
              -> Fold (λ x -> ⟦ B₁ x ⟧) t₁
              -> Fold (λ x -> ⟦ B₂ x ⟧) t₂
   coerceFold {t₂ = ret x₂   } (ret x₁   ) qB qx y = coerce (qB x₁ x₂ qx) y
-  coerceFold {t₂ = sig A₂ k₂} (sig A₁ k₁) qB qt f =
+  coerceFold {t₂ = pi  A₂ k₂} (pi  A₁ k₁) qB qt f =
     λ x -> let qA , qk = qt ; qA′ = sym A₁ {A₂} qA ; x′ = coerce qA′ x in
       coerceFold (k₁ x′) qB (qk x′ x (sym x (coherence qA′ x))) (f x′)
-  coerceFold {t₂ = sig _ _  } (ret _    ) qB () f
-  coerceFold {t₂ = ret _    } (sig _ _  ) qB () f
+  coerceFold {t₂ = pi  _ _  } (ret _    ) qB () f
+  coerceFold {t₂ = ret _    } (pi  _ _  ) qB () f
 
   coerceAll : ∀ {k₁ k₂} {A₁ A₂ : Type} {B₁ : ⟦ A₁ ⟧ -> Univ k₁} {B₂ : ⟦ A₂ ⟧ -> Univ k₂} {xs₁ xs₂}
             -> ⟦ B₁ ≅ B₂ ⟧
@@ -160,11 +160,11 @@ mutual
   coerceExtend {t₂ = ret p₂   } (ret p₁   )  qt qr p =
     let t₁ , i₁ = p₁ ; t₂ , i₂ = p₂ ; qp₁ , qp₂ = qt ; qcs , qi = qr ; a , q₃ = p in
       coerceAll (λ x₁ x₂ q -> qcs , sym x₁ q) qp₁ a , right i₁ qp₂ (left i₁ q₃ qi)
-  coerceExtend {t₂ = sig A₂ k₂} (sig A₁ k₁)  qt qr e =
+  coerceExtend {t₂ = pi  A₂ k₂} (pi  A₁ k₁)  qt qr e =
     let qA , qk = qt ; x , e' = e ; x′ = coerce qA x in
       x′ , coerceExtend (k₁ x) (qk x x′ (coherence qA x)) qr e'
-  coerceExtend {t₂ = sig A₂ k₂} (ret p₁   )  () qr e
-  coerceExtend {t₂ = ret p₂   } (sig A₁ k₁)  () qr e
+  coerceExtend {t₂ = pi  A₂ k₂} (ret p₁   )  () qr e
+  coerceExtend {t₂ = ret p₂   } (pi  A₁ k₁)  () qr e
 
   coerceChilds : ∀ {I₁ I₂} {cs₁ ds₁ : Desc I₁} {cs₂ ds₂ : Desc I₂} {i₁ i₂}
                -> ⟦ rose cs₁ i₁ ≅ rose cs₂ i₂ ⟧

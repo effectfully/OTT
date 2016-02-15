@@ -27,11 +27,11 @@ _≅s_ : ∀ {k s} {A : Univ k} {B : Univ s} -> List ⟦ A ⟧ -> List ⟦ B ⟧
 -- Otherwise it would be the Freer monad over the identity functor.
 data Tele (B : Set) : Set where
   ret : B -> Tele B
-  sig : ∀ {k} -> (A : Univ k) -> (⟦ A ⟧ -> Tele B) -> Tele B
+  pi  : ∀ {k} -> (A : Univ k) -> (⟦ A ⟧ -> Tele B) -> Tele B
 
 Fold : ∀ {B} -> (B -> Set) -> Tele B -> Set
 Fold G (ret y)   = G y
-Fold G (sig A k) = ∀ x -> Fold G (k x)
+Fold G (pi  A k) = ∀ x -> Fold G (k x)
 
 Cons : Type -> Set
 Cons I = Tele (List (Tele ⟦ I ⟧) × ⟦ I ⟧)
@@ -42,7 +42,7 @@ Desc = List ∘ Cons
 module _ {I : Type} where
   Extend : (⟦ I ⟧ -> Set) -> ⟦ I ⟧ -> Cons I -> Set
   Extend F i (ret (ts , j)) = All (Fold F) ts × ⟦ j ≅ i ⟧
-  Extend F i (sig  A k)     = ∃ λ x -> Extend F i (k x)
+  Extend F i (pi   A k)     = ∃ λ x -> Extend F i (k x)
 
   mutual
     record Rose (cs : Desc I) i : Set where
@@ -130,13 +130,13 @@ x₁ ∷ xs₁ ≅s x₂ ∷ xs₂ = x₁ ≅ x₂ & xs₁ ≅s xs₂
 _        ≅s _        = bot
 
 ret x₁    ≅t ret x₂    = x₁ ≅ x₂
-sig A₁ k₁ ≅t sig A₂ k₂ = A₁ ≈ A₂ & k₁ ≅ k₂
+pi  A₁ k₁ ≅t pi  A₂ k₂ = A₁ ≈ A₂ & k₁ ≅ k₂
 _         ≅t _         = bot
 
 _≅f_ : ∀ {k₁ k₂} {A₁ A₂ : Type} {B₁ : ⟦ A₁ ⟧ -> Univ k₁} {B₂ : ⟦ A₂ ⟧ -> Univ k₂}
      -> ∃ (Fold (λ x -> ⟦ B₁ x ⟧)) -> ∃ (Fold (λ x -> ⟦ B₂ x ⟧)) -> Prop
 ret x₁    , y₁ ≅f ret x₂    , y₂ = x₁ ≅ x₂ & y₁ ≅ y₂
-sig A₁ k₁ , f₁ ≅f sig A₂ k₂ , f₂ = π A₁ λ x₁ -> π A₂ λ x₂ -> x₁ ≅ x₂ ⇒ k₁ x₁ , f₁ x₁ ≅f k₂ x₂ , f₂ x₂
+pi  A₁ k₁ , f₁ ≅f pi  A₂ k₂ , f₂ = π A₁ λ x₁ -> π A₂ λ x₂ -> x₁ ≅ x₂ ⇒ k₁ x₁ , f₁ x₁ ≅f k₂ x₂ , f₂ x₂
 _              ≅f _              = bot
 
 _≅a_ : ∀ {k₁ k₂} {A₁ A₂ : Type} {B₁ : ⟦ A₁ ⟧ -> Univ k₁} {B₂ : ⟦ A₂ ⟧ -> Univ k₂} {is₁ is₂}
@@ -148,7 +148,7 @@ _                   ≅a _                   = bot
 _≅e_ : ∀ {I₁ I₂} {F₁ : ⟦ I₁ ⟧ -> Type} {F₂ : ⟦ I₂ ⟧ -> Type} {i₁ i₂}
      -> ∃ (Extend (λ x -> ⟦ F₁ x ⟧) i₁) -> ∃ (Extend (λ x -> ⟦ F₂ x ⟧) i₂) -> Prop
 ret (t₁ , i₁) , fs₁ , q₁ ≅e ret (t₂ , i₂) , fs₂ , q₂ = i₁ ≅ i₂ & fs₁ ≅a fs₂
-sig A₁ k₁     , x₁  , e₁ ≅e sig A₂ k₂     , x₂  , e₂ = x₁ ≅ x₂ & k₁ x₁ , e₁ ≅e k₂ x₂ , e₂
+pi  A₁ k₁     , x₁  , e₁ ≅e pi  A₂ k₂     , x₂  , e₂ = x₁ ≅ x₂ & k₁ x₁ , e₁ ≅e k₂ x₂ , e₂
 _                        ≅e _                        = bot
 
 here {x = c₁} e₁ ≅c here {x = c₂} e₂ = c₁ , e₁ ≅e c₂ , e₂

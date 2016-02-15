@@ -100,27 +100,29 @@ It's an implementation of Observational Type Theory as an Agda library. The univ
 
  `n` and `m` are stuck, but the expression reduces properly regardless of whether `_+ᶠ_` is defined in terms of `elimFin′` or `elimFin`.
 
- One problem with `rose` is that it doesn't allow to define data types like
-
- ```
- data F : Set where
-   C : (Bool -> F) -> F
- ```
-
- i.e. where an inductive position occurs to the right of the arrow in a parameter of a constructor. It can be cured like this:
-
- ```
- data Tele (B : Set) : Set where
-   ret : B -> Tele B
-   sig : ∀ {k} -> (A : Univ k) -> (⟦ A ⟧ -> Tele B) -> Tele B
-
- Cons : Type -> Set
- Cons I = Tele (List (Tele ⟦ I ⟧) × ⟦ I ⟧)
- ```
-
- It's even more convenient than the current version, but the problem with `Tele` is that it's horribly impredicative and doesn't scale well to a predicative type system. We can of course require all `A` to lie in the same universe, but without cumulativity it's impractical. It also becomes harder to define coercions and equality stuff, so I'd rather revisit the whole machinery.
-
  A model of the model can be found [here](https://github.com/effectfully/random-stuff/blob/master/Rose/Coercible.agda).
+
+## A problem
+
+One problem with `rose` is that it doesn't allow to define data types like
+
+```
+data F : Set where
+  C : (Bool -> F) -> F
+```
+
+i.e. where an inductive position occurs to the right of the arrow in a parameter of a constructor. It can be cured like this:
+
+```
+data Tele (B : Set) : Set where
+  ret : B -> Tele B
+  pi  : ∀ {k} -> (A : Univ k) -> (⟦ A ⟧ -> Tele B) -> Tele B
+
+Cons : Type -> Set
+Cons I = Tele (List (Tele ⟦ I ⟧) × ⟦ I ⟧)
+```
+
+It's even more convenient than the current version, but the problem with `Tele` is that it's horribly impredicative and doesn't scale well to a predicative type system. We can of course require all `A` to lie in the same universe, but without cumulativity it's impractical. It also makes coercions and equality stuff more sophisticated. Anyway, this encoding can be found in the `/Tele/` subfolder and I'll probably make it the main eventually.
 
 ## Not implemented
 

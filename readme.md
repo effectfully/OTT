@@ -102,7 +102,7 @@ It's an implementation of Observational Type Theory as an Agda library. The univ
 
  A model of the model can be found [here](https://github.com/effectfully/random-stuff/blob/master/Rose/Coercible.agda) (it's slightly weaker, though, as it doesn't allow to describe `W` and similar data types in which an inductive position occurs to the right of the arrow in a parameter of a constructor).
 
-There is [an alternative encoding](https://github.com/effectfully/random-stuff/blob/master/IRDesc.agda) in terms of proper propositional descriptions (see [6]), which is a slightly modified version of [7]. It's more standard, more powerful (it's able to express induction-recursion), but also significantly more complicated: data types must be defined mutually with coercions (or maybe we can to use a parametrised module like in the model, but it still doesn't look nice), which results in a giant mutual block. I didn't try to define equality and coercions for descriptions, but I suspect it's much harder than how it's now. I'll go with the current simple approach.
+ There is [an alternative encoding](https://github.com/effectfully/random-stuff/blob/master/IRDesc.agda) in terms of proper propositional descriptions (see [6]), which is a slightly modified version of [7]. It's more standard, more powerful (it's able to express induction-recursion), but also significantly more complicated: data types must be defined mutually with coercions (or maybe we can to use a parametrised module like in the model, but it still doesn't look nice), which results in a giant mutual block. I didn't try to define equality and coercions for descriptions, but I suspect it's much harder than how it's now. I'll go with the current simple approach.
 
 ## Not implemented
 
@@ -154,6 +154,6 @@ A bunch of different encodings of OTT can be found [here](https://github.com/eff
 
 [5] ["On Universes in Type Theory"](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.221.1318&rep=rep1&type=pdf), Erik Palmgren
 
-[6] ["Modeling Elimination of Described Types", Larry Diehl](http://spire-lang.org/blog/2014/01/15/modeling-elimination-of-described-types/)
+[6] ["Modeling Elimination of Described Types"](http://spire-lang.org/blog/2014/01/15/modeling-elimination-of-described-types/), Larry Diehl
 
-[7] ["Inductive-Recursive Descriptions", Larry Diehl](http://spire-lang.org/blog/2014/08/04/inductive-recursive-descriptions/)
+[7] ["Inductive-Recursive Descriptions"](http://spire-lang.org/blog/2014/08/04/inductive-recursive-descriptions/), Larry Diehl

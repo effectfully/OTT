@@ -1,11 +1,9 @@
-module OTT.Tele.W where
+module OTT.Data.W where
 
-open import OTT.Prelude
-open import OTT.Tele.Core
-open import OTT.Tele.Coerce
+open import OTT.Main
 
 w : (A : Type) -> (⟦ A ⟧ -> Type) -> Type
-w A B = rose ((pi A λ x -> ret ((pi (B x) λ _ -> ret triv) ∷ [] , triv)) ∷ []) triv
+w A B = rose ((pi A λ x -> ret ((B x ⇨ ret triv) ∷ [] , triv)) ∷ []) triv
 
 W : (A : Type) -> (⟦ A ⟧ -> Type) -> Set
 W A B = ⟦ w A B ⟧

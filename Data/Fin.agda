@@ -3,7 +3,7 @@ module OTT.Data.Fin where
 open import OTT.Main
 
 fin : ℕ -> Type
-fin = rose $ (nat , λ m -> [] , suc m) ∷ (nat , λ m -> m ∷ [] , suc m) ∷ []
+fin = rose $ (pi nat λ m -> ret ([] , suc m)) ∷ (pi nat λ m -> ret (ret m ∷ [] , suc m)) ∷ []
 
 Fin : ℕ -> Set
 Fin n = ⟦ fin n ⟧

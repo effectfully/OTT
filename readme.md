@@ -100,29 +100,9 @@ It's an implementation of Observational Type Theory as an Agda library. The univ
 
  `n` and `m` are stuck, but the expression reduces properly regardless of whether `_+ᶠ_` is defined in terms of `elimFin′` or `elimFin`.
 
- A model of the model can be found [here](https://github.com/effectfully/random-stuff/blob/master/Rose/Coercible.agda).
+ A model of the model can be found [here](https://github.com/effectfully/random-stuff/blob/master/Rose/Coercible.agda) (it's slightly weaker, though, as it doesn't allow to describe `W` and similar data types in which an inductive position occurs to the right of the arrow in a parameter of a constructor).
 
-## A problem
-
-One problem with `rose` is that it doesn't allow to define data types like
-
-```
-data F : Set where
-  C : (Bool -> F) -> F
-```
-
-i.e. where an inductive position occurs to the right of the arrow in a parameter of a constructor. It can be cured like this:
-
-```
-data Tele (B : Set) : Set where
-  ret : B -> Tele B
-  pi  : ∀ {k} -> (A : Univ k) -> (⟦ A ⟧ -> Tele B) -> Tele B
-
-Cons : Type -> Set
-Cons I = Tele (List (Tele ⟦ I ⟧) × ⟦ I ⟧)
-```
-
-It's even more convenient than the current version, but the problem with `Tele` is that it's horribly impredicative and doesn't scale well to a predicative type system. We can of course require all `A` to lie in the same universe, but without cumulativity it's impractical. It also makes coercions and equality stuff more sophisticated. Anyway, this encoding can be found in the `/Tele/` subfolder and I'll probably make it the main eventually.
+There is [an alternative encoding](https://github.com/effectfully/random-stuff/blob/master/IRDesc.agda) in terms of proper propositional descriptions (see [6]), which is a slightly modified version of [7]. It's more standard, more powerful (it's able to express induction-recursion), but also significantly more complicated: data types must be defined mutually with coercions (or maybe we can to use a parametrised module like in the model, but it still doesn't look nice), which results in a giant mutual block. I didn't try to define equality and coercions for descriptions, but I suspect it's much harder than how it's now. I'll go with the current simple approach.
 
 ## Not implemented
 
@@ -173,3 +153,7 @@ A bunch of different encodings of OTT can be found [here](https://github.com/eff
 [4] ["W-types: good news and bad news"](http://mazzo.li/epilogue/index.html%3Fp=324.html), Conor McBride
 
 [5] ["On Universes in Type Theory"](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.221.1318&rep=rep1&type=pdf), Erik Palmgren
+
+[6] ["Modeling Elimination of Described Types", Larry Diehl](http://spire-lang.org/blog/2014/01/15/modeling-elimination-of-described-types/)
+
+[7] ["Inductive-Recursive Descriptions", Larry Diehl](http://spire-lang.org/blog/2014/08/04/inductive-recursive-descriptions/)

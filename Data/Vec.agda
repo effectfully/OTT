@@ -5,16 +5,16 @@ open import OTT.Main
 infixr 5 _∷ᵥ_
 
 vec : ∀ {k} -> Univ k -> ℕ -> Type
-vec A = rose $ (unit , λ _ -> [] , 0) ∷ ((nat & A) , λ p -> proj₁ p ∷ [] , suc (proj₁ p)) ∷ []
+vec A = rose $ ret ([] , 0) ∷ (pi nat λ m -> A ⇨ ret (ret m ∷ [] , suc m)) ∷ []
 
 Vec : ∀ {k} -> Univ k -> ℕ -> Set
 Vec A n = ⟦ vec A n ⟧
 
 vnilₑ : ∀ {m k} {A : Univ k} -> ⟦ 0 ≅ m ⇒ vec A m ⟧
-vnilₑ q = #₀ (, [] , q)
+vnilₑ q = #₀ ([] , q)
 
 vconsₑ : ∀ {n m k} {A : Univ k} -> ⟦ suc n ≅ m ⇒ A ⇒ vec A n ⇒ vec A m ⟧
-vconsₑ {n} q x xs = #₁ ((n , x) , xs ∷ [] , q)
+vconsₑ {n} q x xs = #₁ (n , x , xs ∷ [] , q)
 
 []ᵥ : ∀ {k} {A : Univ k} -> Vec A 0
 []ᵥ = vnilₑ (refl 0)
@@ -29,8 +29,8 @@ elimVecₑ : ∀ {n k π} {A : Univ k}
          -> (∀ {m} -> (q : ⟦ 0 ≅ m ⟧) -> P {m} (vnilₑ q))
          -> (xs : Vec A n)
          -> P xs
-elimVecₑ P f z (#₀ (, [] , q))             = z q
-elimVecₑ P f z (#₁ ((n , x), xs ∷ [] , q)) = f q x (elimVecₑ P f z xs)
+elimVecₑ P f z (#₀ ([] , q))              = z q
+elimVecₑ P f z (#₁ (n , x , xs ∷ [] , q)) = f q x (elimVecₑ P f z xs)
 elimVecₑ P f z  ⟨⟩₂
 
 foldVec : ∀ {n k π} {A : Univ k} {P : Set π} -> (⟦ A ⟧ -> P -> P) -> P -> Vec A n -> P

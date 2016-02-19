@@ -3,16 +3,13 @@ module OTT.Data.Fin where
 open import OTT.Main
 
 fin : ℕ -> Type
-fin = rose $ (pi nat λ m -> ret ([] , suc m)) ∷ (pi nat λ m -> ret (ret m ∷ [] , suc m)) ∷ []
+fin = rose $ (pi nat λ n -> ret ([] , suc n)) ∷ (pi nat λ n -> ret (ret n ∷ [] , suc n)) ∷ []
 
 Fin : ℕ -> Set
 Fin n = ⟦ fin n ⟧
 
-fzeroₑ : ∀ {n m} -> ⟦ suc n ≅ m ⟧ -> Fin m
-fzeroₑ {n} q = #₀ (n , [] , q)
-
-fsucₑ : ∀ {n m} -> ⟦ suc n ≅ m ⟧ -> Fin n -> Fin m
-fsucₑ {n} q i = #₁ (n , i ∷ [] , q)
+pattern fzeroₑ {n} q   = #₀ (n , []     , q)
+pattern fsucₑ  {n} q i = #₁ (n , i ∷ [] , q)
 
 fzero : ∀ {n} -> Fin (suc n)
 fzero {n} = fzeroₑ {n} (refl (suc n))
@@ -26,8 +23,8 @@ elimFinₑ : ∀ {n π}
          -> (∀ {n m} -> (q : ⟦ suc n ≅ m ⟧) -> P {m} (fzeroₑ q))
          -> (i : Fin n)
          -> P i
-elimFinₑ P f x (#₀ (m , []     , q)) = x q
-elimFinₑ P f x (#₁ (m , i ∷ [] , q)) = f q (elimFinₑ P f x i)
+elimFinₑ P f x (fzeroₑ q)  = x q
+elimFinₑ P f x (fsucₑ q i) = f q (elimFinₑ P f x i)
 elimFinₑ P f x  ⟨⟩₂
 
 foldFin : ∀ {n π} {P : Set π} -> (P -> P) -> P -> Fin n -> P

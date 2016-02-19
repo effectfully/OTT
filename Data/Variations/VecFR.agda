@@ -1,17 +1,21 @@
-module OTT.Data.Vec where
+module OTT.Data.Variations.VecFR where
 
 open import OTT.Main
 
 infixr 5 _∷ᵥ_
 
+caseℕ : ∀ {α} {A : Set α} -> A -> (ℕ -> A) -> ℕ -> A
+caseℕ x f  0      = x
+caseℕ x f (suc n) = f n
+
 vec : ∀ {k} -> Univ k -> ℕ -> Type
-vec A = rose $ ret ([] , 0) ∷ (pi nat λ n -> A ⇨ ret (ret n ∷ [] , suc n)) ∷ []
+vec A = rose $ (pi nat $ caseℕ (ret ([] , 0)) λ n -> A ⇨ ret (ret n ∷ [] , suc n)) ∷ []
 
 Vec : ∀ {k} -> Univ k -> ℕ -> Set
 Vec A n = ⟦ vec A n ⟧
 
-pattern vnilₑ      q      = #₀ ([] , q)
-pattern vconsₑ {n} q x xs = #₁ (n , x , xs ∷ [] , q)
+pattern vnilₑ      q      = #₀ (0 , [] , q)
+pattern vconsₑ {n} q x xs = #₀ (suc n , x , xs ∷ [] , q)
 
 []ᵥ : ∀ {k} {A : Univ k} -> Vec A 0
 []ᵥ = vnilₑ (refl 0)
@@ -28,7 +32,7 @@ elimVecₑ : ∀ {n k π} {A : Univ k}
          -> P xs
 elimVecₑ P f z (vnilₑ  q)      = z q
 elimVecₑ P f z (vconsₑ q x xs) = f q x (elimVecₑ P f z xs)
-elimVecₑ P f z  ⟨⟩₂
+elimVecₑ P f z  ⟨⟩₁
 
 foldVec : ∀ {n k π} {A : Univ k} {P : Set π} -> (⟦ A ⟧ -> P -> P) -> P -> Vec A n -> P
 foldVec f z = elimVecₑ _ (const f) (const z)

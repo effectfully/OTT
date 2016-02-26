@@ -92,7 +92,7 @@ mutual
 
 
 -- Just copypasted constructors from the appropriate modules.
--- Don't want to change them of the whole encoding for now.
+-- Don't want to change them or the whole encoding for now.
 
 open import Relation.Binary.PropositionalEquality renaming (refl to prefl)
 

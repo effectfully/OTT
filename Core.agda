@@ -25,6 +25,7 @@ _≅s_ : ∀ {k s} {A : Univ k} {B : Univ s} -> List ⟦ A ⟧ -> List ⟦ B ⟧
 
 -- Avoiding size issues using the induction-recursion shrink ray.
 -- Otherwise it would be the Freer monad over the identity functor.
+-- What if we instead compute `Tele' by recursion on `ℕ'?
 data Tele (B : Set) : Set where
   ret : B -> Tele B
   pi  : ∀ {k} -> (A : Univ k) -> (⟦ A ⟧ -> Tele B) -> Tele B
@@ -45,7 +46,7 @@ Desc = List ∘ Cons
 module _ {I : Type} where
   Extend : (⟦ I ⟧ -> Set) -> ⟦ I ⟧ -> Cons I -> Set
   Extend F i (ret (ts , j)) = All (Fold F) ts × ⟦ j ≅ i ⟧
-  Extend F i (pi   A k)     = ∃ λ x -> Extend F i (k x)
+  Extend F i (pi A k)       = ∃ λ x -> Extend F i (k x)
 
   mutual
     record Rose (cs : Desc I) i : Set where
@@ -90,6 +91,16 @@ A & B = σ A λ _ -> B
 _⇒_ : ∀ {k s} -> Univ k -> Univ s -> Univ  s
 A ⇒ B = π A λ _ -> B
 
+-- What if `Tele' would be defined in terms of other constructors?
+-- Then (desc I = list (tele (list (tele I) & I))). Looks nicer and more reflexive.
+
+-- tele′ : ⟦ nat ⇒ type ⇒ type ⟧
+-- tele′  0      B = B
+-- tele′ (suc n) B = σ type λ A -> A ⇒ tele′ n B
+
+-- tele : ⟦ type ⇒ type ⟧
+-- tele B = σ nat λ n -> tele′ n B
+
 _≟ᵇ_ : Bool -> Bool -> Prop
 false ≟ᵇ false = top
 true  ≟ᵇ true  = top
@@ -125,22 +136,22 @@ _≅_ {A = σ A₁ B₁    } {σ A₂ B₂    } p₁  p₂  = let x₁ , y₁ = 
 _≅_ {A = π A₁ B₁    } {π A₂ B₂    } f₁  f₂  = π _ λ x₁ -> π _ λ x₂ -> x₁ ≅ x₂ ⇒ f₁ x₁ ≅ f₂ x₂
 _≅_ {A = list A₁    } {list A₂    } xs₁ xs₂ = xs₁ ≅s xs₂
 _≅_ {A = tele A₁    } {tele A₂    } t₁  t₂  = t₁  ≅t t₂
-_≅_ {A = rose cs₁ i₁} {rose cs₂ i₂} r₁  r₂  = let node chs₁ = r₁ ; node chs₂ = r₂ in chs₁ ≅c chs₂
+_≅_ {A = rose cs₁ i₁} {rose cs₂ i₂} r₁  r₂  = let node cs₁ = r₁ ; node cs₂ = r₂ in cs₁ ≅c cs₂
 _≅_                                 _   _   = bot
 
 []       ≅s []       = top
 x₁ ∷ xs₁ ≅s x₂ ∷ xs₂ = x₁ ≅ x₂ & xs₁ ≅s xs₂
 _        ≅s _        = bot
 
-ret x₁    ≅t ret x₂    = x₁ ≅ x₂
-pi  A₁ k₁ ≅t pi  A₂ k₂ = A₁ ≈ A₂ & k₁ ≅ k₂
-_         ≅t _         = bot
+ret x₁   ≅t ret x₂   = x₁ ≅ x₂
+pi A₁ B₁ ≅t pi A₂ B₂ = A₁ ≈ A₂ & B₁ ≅ B₂
+_        ≅t _        = bot
 
 _≅f_ : ∀ {k₁ k₂} {A₁ A₂ : Type} {B₁ : ⟦ A₁ ⟧ -> Univ k₁} {B₂ : ⟦ A₂ ⟧ -> Univ k₂}
      -> ∃ (Fold (λ x -> ⟦ B₁ x ⟧)) -> ∃ (Fold (λ x -> ⟦ B₂ x ⟧)) -> Prop
-ret x₁    , y₁ ≅f ret x₂    , y₂ = x₁ ≅ x₂ & y₁ ≅ y₂
-pi  A₁ k₁ , f₁ ≅f pi  A₂ k₂ , f₂ = π A₁ λ x₁ -> π A₂ λ x₂ -> x₁ ≅ x₂ ⇒ k₁ x₁ , f₁ x₁ ≅f k₂ x₂ , f₂ x₂
-_              ≅f _              = bot
+ret x₁   , y₁ ≅f ret x₂   , y₂ = x₁ ≅ x₂ & y₁ ≅ y₂
+pi A₁ B₁ , f₁ ≅f pi A₂ B₂ , f₂ = π A₁ λ x₁ -> π A₂ λ x₂ -> x₁ ≅ x₂ ⇒ B₁ x₁ , f₁ x₁ ≅f B₂ x₂ , f₂ x₂
+_             ≅f _             = bot
 
 _≅a_ : ∀ {k₁ k₂} {A₁ A₂ : Type} {B₁ : ⟦ A₁ ⟧ -> Univ k₁} {B₂ : ⟦ A₂ ⟧ -> Univ k₂} {is₁ is₂}
      -> All (Fold (λ x -> ⟦ B₁ x ⟧)) is₁ -> All (Fold (λ x -> ⟦ B₂ x ⟧)) is₂ -> Prop
@@ -151,11 +162,11 @@ _                   ≅a _                   = bot
 _≅e_ : ∀ {I₁ I₂} {F₁ : ⟦ I₁ ⟧ -> Type} {F₂ : ⟦ I₂ ⟧ -> Type} {i₁ i₂}
      -> ∃ (Extend (λ x -> ⟦ F₁ x ⟧) i₁) -> ∃ (Extend (λ x -> ⟦ F₂ x ⟧) i₂) -> Prop
 ret (t₁ , i₁) , fs₁ , q₁ ≅e ret (t₂ , i₂) , fs₂ , q₂ = i₁ ≅ i₂ & fs₁ ≅a fs₂
-pi  A₁ k₁     , x₁  , e₁ ≅e pi  A₂ k₂     , x₂  , e₂ = x₁ ≅ x₂ & k₁ x₁ , e₁ ≅e k₂ x₂ , e₂
+pi A₁ B₁      , x₁  , e₁ ≅e pi A₂ B₂      , x₂  , e₂ = x₁ ≅ x₂ & B₁ x₁ , e₁ ≅e B₂ x₂ , e₂
 _                        ≅e _                        = bot
 
 here {x = c₁} e₁ ≅c here {x = c₂} e₂ = c₁ , e₁ ≅e c₂ , e₂
-there chs₁       ≅c there chs₂       = chs₁ ≅c chs₂
+there cs₁        ≅c there cs₂        = cs₁ ≅c cs₂
 _                ≅c _                = bot
 
 pattern #₀ y = node (here y)

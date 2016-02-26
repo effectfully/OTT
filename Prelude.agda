@@ -52,11 +52,11 @@ injAt⁺  []       ()     p
 injAt⁺ (x ∷ xs)  zero   p = here p
 injAt⁺ (x ∷ xs) (suc i) p = there (injAt⁺ xs i p)
 
--- I'm using ad hoc `#₀', `#₁', `#₂'... instead because they are defined as pattern synonyms.
+-- I use ad hoc `#₀', `#₁', `#₂'... instead because they are defined as pattern synonyms.
 module _ {α π} {A : Set α} {P : A -> Set π} n {p : A ^ n} where
   infix 2 _#_
 
-  xs = toList n p
+  private xs = toList n p
 
   _#_ : tryFromℕ n >>=ᵀ λ i -> ∀ {ys} -> P (xs !! i) -> Any P (xs ++ ys)
   _#_ = tryFromℕ n >>=ᵗ λ i {_} -> injAt⁺ xs i

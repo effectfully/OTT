@@ -46,9 +46,10 @@ It's an implementation of Observational Type Theory as an Agda library. The univ
           -> (∀ {n m} -> (q : ⟦ suc n ≅ m ⟧) -> P {m} (fzeroₑ q))
           -> (i : Fin n)
           -> P i
- elimFinₑ P f x (#₀ (m , []     , q)) = x q
- elimFinₑ P f x (#₁ (m , i ∷ [] , q)) = f q (elimFinₑ P f x i)
+ elimFinₑ P f x (fzeroₑ q)  = x q
+ elimFinₑ P f x (fsucₑ q i) = f q (elimFinₑ P f x i)
  elimFinₑ P f x  ⟨⟩₂
+
  ```
 
  `elimFinₑ` is an "up to propositional equality" eliminator. The thing here is that `elimFinₑ` doesn't contain any coercions at all, so its "non-dependent" computational behaviour is the same as the corresponding behaviour of an eliminator in an intensional type theory. It even gives you slightly more:

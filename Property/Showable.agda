@@ -5,7 +5,7 @@ module OTT.Property.Showable where
 open import OTT.Main
 
 open import Data.Char as Char hiding (show)
-open import Data.String.Base hiding (show) renaming (_++_ to _s++_)
+open import Data.String.Base as String hiding (show) renaming (_++_ to _s++_)
 import Data.Nat.Show as Nat
 
 instance
@@ -38,7 +38,7 @@ sconcat : List String -> String
 sconcat = foldr _s++_ ""
 
 parens : String -> String
-parens s = "(" s++ s s++ ")"
+parens s = if any (_== ' ') (String.toList s) then "(" s++ s s++ ")" else s
 
 record Named {I} (cs : Desc I) : Set where
   field names : All (λ _ -> String) cs
@@ -118,5 +118,5 @@ instance
   named-vec = record { names = "nil" ∷ "cons" ∷ [] }
 
 test₂ : show (Vec (nat & nat) 3 ∋ (7 , 8) ∷ᵥ (9 , 10) ∷ᵥ (11 , 12) ∷ᵥ []ᵥ)
-      ≡ "(cons 2 (7 , 8) (cons 1 (9 , 10) (cons 0 (11 , 12) (nil))))"
+      ≡ "(cons 2 (7 , 8) (cons 1 (9 , 10) (cons 0 (11 , 12) nil)))"
 test₂ = prefl

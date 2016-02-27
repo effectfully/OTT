@@ -37,7 +37,7 @@ It's an implementation of Observational Type Theory as an Agda library. The univ
  coerce′ : ∀ {k s} {A : Univ k} {B : Univ s} -> ⟦ A ≃ B ⇒ A ⇒ B ⟧
  ```
 
- - `rose` allows to define inductive data types (including inductive families) in the target theory. `coerce` computes under constructors of any inductive family defined in terms of `rose`. This is achieved via the trick described in the section 5 of [1]. `rose` also allows to define eliminators of data types (even in an intensional type theory). Each data type has at least two eliminators: one classical and one "up to propositional equality". An example from the `OTT.Data.Fin` module:
+ - `rose` allows to define inductive data types (including inductive families) in the target theory. `coerce` computes under constructors of any inductive family defined in terms of `rose`. This is achieved via the trick described in the section 5 of [1]. `rose` also allows to define eliminators of data types (even in an intensional type theory). Each inductive family has at least two eliminators: one classical and one "up to propositional equality". An example from the `OTT.Data.Fin` module:
 
  ```
  elimFinₑ : ∀ {n π}
@@ -100,6 +100,38 @@ It's an implementation of Observational Type Theory as an Agda library. The univ
  ```
 
  `n` and `m` are stuck, but the expression reduces properly regardless of whether `_+ᶠ_` is defined in terms of `elimFin′` or `elimFin`.
+
+ Eliminators for inductive data types (not families) are the usual intensional eliminators, e.g.
+
+ ```
+ [_,_] : ∀ {k s π} {A : Univ k} {B : Univ s} {P : A ⊎ B -> Set π}
+       -> (∀ x -> P (inj₁ x)) -> (∀ y -> P (inj₂ y)) -> ∀ s -> P s
+ [ f , g ] (inj₁ x) = f x
+ [ f , g ] (inj₂ y) = g y
+ [ f , g ]  ⟨⟩₂
+
+ elimW : ∀ {π A} {B : ⟦ A ⟧ -> Type}
+       -> (P : W A B -> Set π)
+       -> (∀ {x} {g : ⟦ B x ⟧ -> W A B} -> (∀ y -> P (g y)) -> P (sup x g))
+       -> ∀ w
+       -> P w
+ elimW P h (sup x g) = h (λ y -> elimW P h (g y))
+ elimW P h  ⟨⟩₁
+ ```
+
+ An example of generic programming can be found in the `OTT.Property.Showable` module:
+
+ ```
+ instance
+   named-vec : {A : Type} -> Named (vec-cs A)
+   named-vec = record { names = "nil" ∷ "cons" ∷ [] }
+
+ test₂ : show (Vec (nat & nat) 3 ∋ (7 , 8) ∷ᵥ (9 , 10) ∷ᵥ (11 , 12) ∷ᵥ []ᵥ)
+       ≡ "(cons 2 (7 , 8) (cons 1 (9 , 10) (cons 0 (11 , 12) nil)))"
+ test₂ = prefl
+ ```
+
+ I.e. to be able to print a vector all you need is to name the constructors.
 
  A model of the model can be found [here](https://github.com/effectfully/random-stuff/blob/master/Rose/Coercible.agda) (it's slightly weaker, though, as it doesn't allow to describe `W` and similar data types in which an inductive position occurs to the right of the arrow in a parameter of a constructor).
 

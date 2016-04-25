@@ -119,7 +119,7 @@ It's an implementation of Observational Type Theory as an Agda library. The univ
  elimW P h  ⟨⟩₁
  ```
 
- To define a data type you need to define a description. Each description is a list of constructors. Each constructor is a telescope that ends with a list of inductive occurences and the final index that the constructor produces. Each inductive occurence is itself a telescope which allows to put the inductive position to the right of the arrow, i.e. to describe data types like `W`. The code looks like this:
+ To define a data type you need to define a description. Each description is a list of constructors. Each constructor is a telescope that ends with a list of inductive occurrences and the final index that the constructor produces. Each inductive occurrence is itself a telescope which allows to put the inductive position to the right of the arrow, i.e. to describe data types like `W`. The code looks like this:
 
  ```
  data Tele (B : Set) : Set where
@@ -133,7 +133,7 @@ It's an implementation of Observational Type Theory as an Agda library. The univ
  Desc = List ∘ Cons
  ```
 
- `rose` then ties the know and connect the constructor together. An example:
+ `rose` then ties the know and connects the constructors together. An example:
 
  ```
  vec : ∀ {k} -> Univ k -> ℕ -> Type
@@ -143,7 +143,7 @@ It's an implementation of Observational Type Theory as an Agda library. The univ
  Vec A n = ⟦ vec A n ⟧
  ```
 
- Vectors have two constructors: `[]` and `_∷_`. The first constructor produces index `0` and doesn't contain any data indcluding inductive occurences. The second constructor produces index `suc n`, carries an `A` and an inductive occurence.
+ Vectors have two constructors: `[]` and `_∷_`. The first constructor produces index `0` and doesn't contain any data including inductive occurrences. The second constructor produces index `suc n`, carries an `A` and an inductive occurrence.
 
  Another example:
 
@@ -161,7 +161,7 @@ It's an implementation of Observational Type Theory as an Agda library. The univ
  sup : (x : A) -> (B x -> W A B) -> W A B
  ```
 
- so there one inductive occurence where the inductive position occurs to the right of the arrow. This is encoded as `(B x ⇨ ret triv) ∷ []`.
+ so there is one inductive occurrence where the inductive position occurs to the right of the arrow. This is encoded as `(B x ⇨ ret triv) ∷ []`.
 
  An example of generic programming can be found in the `OTT.Property.Showable` module:
 

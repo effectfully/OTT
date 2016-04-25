@@ -119,6 +119,50 @@ It's an implementation of Observational Type Theory as an Agda library. The univ
  elimW P h  ⟨⟩₁
  ```
 
+ To define a data type you need to define a description. Each description is a list of constructors. Each constructor is a telescope that ends with a list of inductive occurences and the final index that the constructor produces. Each inductive occurence is itself a telescope which allows to put the inductive position to the right of the arrow, i.e. to describe data types like `W`. The code looks like this:
+
+ ```
+ data Tele (B : Set) : Set where
+  ret : B -> Tele B
+  pi  : ∀ {k} -> (A : Univ k) -> (⟦ A ⟧ -> Tele B) -> Tele B
+
+ Cons : Type -> Set
+ Cons I = Tele (List (Tele ⟦ I ⟧) × ⟦ I ⟧)
+
+ Desc : Type -> Set
+ Desc = List ∘ Cons
+ ```
+
+ `rose` then ties the know and connect the constructor together. An example:
+
+ ```
+ vec : ∀ {k} -> Univ k -> ℕ -> Type
+ vec A = rose $ ret ([] , 0) ∷ (pi nat λ n -> A ⇨ ret (ret n ∷ [] , suc n)) ∷ []
+
+ Vec : ∀ {k} -> Univ k -> ℕ -> Set
+ Vec A n = ⟦ vec A n ⟧
+ ```
+
+ Vectors have two constructors: `[]` and `_∷_`. The first constructor produces index `0` and doesn't contain any data indcluding inductive occurences. The second constructor produces index `suc n`, carries an `A` and an inductive occurence.
+
+ Another example:
+
+ ```
+ w : (A : Type) -> (⟦ A ⟧ -> Type) -> Type
+ w A B = rose ((pi A λ x -> ret ((B x ⇨ ret triv) ∷ [] , triv)) ∷ []) triv
+
+ W : (A : Type) -> (⟦ A ⟧ -> Type) -> Set
+ W A B = ⟦ w A B ⟧
+ ```
+
+ `W` is a non-indexed data types, hence the `triv` everywhere. `W` has one constructor:
+
+ ```
+ sup : (x : A) -> (B x -> W A B) -> W A B
+ ```
+
+ so there one inductive occurence where the inductive position occurs to the right of the arrow. This is encoded as `(B x ⇨ ret triv) ∷ []`.
+
  An example of generic programming can be found in the `OTT.Property.Showable` module:
 
  ```
@@ -136,6 +180,12 @@ It's an implementation of Observational Type Theory as an Agda library. The univ
  A model of the model can be found [here](https://github.com/effectfully/random-stuff/blob/master/Rose/Coercible.agda) (it's slightly weaker, though, as it doesn't allow to describe `W` and similar data types in which an inductive position occurs to the right of the arrow in a parameter of a constructor).
 
  There is [an alternative encoding](https://github.com/effectfully/random-stuff/blob/master/IRDesc.agda) in terms of proper propositional descriptions (see [6]), which is a slightly modified version of [7]. It's more standard, more powerful (it's able to express induction-recursion), but also significantly more complicated: data types must be defined mutually with coercions (or maybe we can to use a parametrised module like in the model, but it still doesn't look nice), which results in a giant mutual block. I didn't try to define equality and coercions for descriptions, but I suspect it's much harder than how it's now. I'll go with the current simple approach.
+
+ In the levitation paper ([8]) they don't have lists at all, but instead use finite enumerations. We can't define `Desc I = Tele (Tele I × I)`, because a non-recursive constructor doesn't return a `Tele I` and we can't use `empty = pi ⊥ ⊥-elim`, because it's too extensional.
+
+ I don't like computational descriptions, because explicit unification constraints are ugly. I don't like propositional descriptions, because `B` in `RecFun : (A : Set) (B : A → I) (D : Desc I) → Desc I` is not a proper telescope and I don't want to manually extract elements from a big tuple that can appear in the place of `A`. I don't like the encoding presented here, because those lists look redundant. The encoding I like currently is [computational descriptions used as propositional desciptions](https://github.com/effectfully/random-stuff/blob/master/CompPropDesc.agda).
+
+ But who said that we should entirely exclude non-strictly-positive data types?
 
 ## Not implemented
 
@@ -190,3 +240,5 @@ A bunch of different encodings of OTT can be found [here](https://github.com/eff
 [6] ["Modeling Elimination of Described Types"](http://spire-lang.org/blog/2014/01/15/modeling-elimination-of-described-types/), Larry Diehl
 
 [7] ["Inductive-Recursive Descriptions"](http://spire-lang.org/blog/2014/08/04/inductive-recursive-descriptions/), Larry Diehl
+
+[8] ["The Gengtle Art of Levitation"](https://jmchapman.github.io/papers/levitation.pdf), James Chapman, Pierre-Évariste Dagand, Conor McBride, Peter Morris

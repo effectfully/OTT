@@ -4,12 +4,15 @@ module OTT.Core where
 
 open import OTT.Prelude
 
-record Unit : Set where
-  constructor triv
-
 infixr 1 _&_
 infixr 2 _⇒_ _⇨_
-infix  3 _≈_ _≃_ _≅_ _≅s_ _≅t_ _≅f_ _≅a_ _≅e_ _≅c_
+infix  3 _≈_ _≃_ _≅_ _≅d_ _≅s_ _≅e_
+infixr 6 _⊛_
+
+Unit = Fin 1
+
+tr : Unit
+tr = fzero
 
 data Univ : Bool -> Set
 
@@ -21,66 +24,50 @@ Type = Univ true
 _≈_  : ∀ {k s} -> Univ k -> Univ s -> Prop
 _≃_  : ∀ {k s} -> Univ k -> Univ s -> Prop
 _≅_  : ∀ {k s} {A : Univ k} {B : Univ s} -> ⟦ A ⟧ -> ⟦ B ⟧ -> Prop
-_≅s_ : ∀ {k s} {A : Univ k} {B : Univ s} -> List ⟦ A ⟧ -> List ⟦ B ⟧ -> Prop
 
--- Avoiding size issues using the induction-recursion shrink ray.
--- Otherwise it would be the Freer monad over the identity functor.
--- What if we instead compute `Tele' by recursion on `ℕ'?
-data Tele (B : Set) : Set where
-  ret : B -> Tele B
-  pi  : ∀ {k} -> (A : Univ k) -> (⟦ A ⟧ -> Tele B) -> Tele B
+data Desc (I : Type) : Set where
+  var : ⟦ I ⟧ -> Desc I
+  π   : ∀ {k} -> (A : Univ k) -> (⟦ A ⟧ -> Desc I) -> Desc I
+  _⊛_ : Desc I -> Desc I -> Desc I
 
-_⇨_ : ∀ {k B} (A : Univ k) -> Tele B -> Tele B
-A ⇨ t = pi A λ _ -> t
+_⇨_ : ∀ {k I} -> Univ k -> Desc I -> Desc I
+A ⇨ D = π A λ _ -> D
 
-Fold : ∀ {B} -> (B -> Set) -> Tele B -> Set
-Fold G (ret y)   = G y
-Fold G (pi  A k) = ∀ x -> Fold G (k x)
+⟦_⟧ᴰ : ∀ {I} -> Desc I -> (⟦ I ⟧ -> Set) -> Set
+⟦ var i ⟧ᴰ F = F i
+⟦ π A B ⟧ᴰ F = ∀ x -> ⟦ B x ⟧ᴰ F
+⟦ D ⊛ E ⟧ᴰ F = ⟦ D ⟧ᴰ F × ⟦ E ⟧ᴰ F
 
-Cons : Type -> Set
-Cons I = Tele (List (Tele ⟦ I ⟧) × ⟦ I ⟧)
+Extend : ∀ {I} -> Desc I -> (⟦ I ⟧ -> Set) -> ⟦ I ⟧ -> Set
+Extend (var j) F i = ⟦ j ≅ i ⟧
+Extend (π A B) F i = ∃ λ x -> Extend (B x) F i
+Extend (D ⊛ E) F i = ⟦ D ⟧ᴰ F × Extend E F i
 
-Desc : Type -> Set
-Desc = List ∘ Cons
-
-module _ {I : Type} where
-  Extend : (⟦ I ⟧ -> Set) -> ⟦ I ⟧ -> Cons I -> Set
-  Extend F i (ret (ts , j)) = All (Fold F) ts × ⟦ j ≅ i ⟧
-  Extend F i (pi A k)       = ∃ λ x -> Extend F i (k x)
-
-  mutual
-    record Rose (cs : Desc I) i : Set where
-      inductive
-      constructor node
-      field childs : Childs cs cs i
-
-    Childs : Desc I -> Desc I -> ⟦ I ⟧ -> Set
-    Childs cs₁ cs₂ i = Any (Extend (Rose cs₁) i) cs₂
-
-_≅t_ : {A B : Type} -> Tele ⟦ A ⟧ -> Tele ⟦ B ⟧ -> Prop
-_≅c_ : ∀ {I₁ I₂} {cs₁ ds₁ : Desc I₁} {cs₂ ds₂ : Desc I₂} {i₂ i₁}
-     -> Childs cs₁ ds₁ i₁ -> Childs cs₂ ds₂ i₂ -> Prop
+record μ {I} (D : Desc I) i : Set where
+  inductive
+  constructor node
+  field knot : Extend D (μ D) i
 
 data Univ where
-  bot  top : Prop
-  unit nat : Type
+  bot  : Prop
+  top  : Prop
+  nat  : Type
+  fin  : ℕ -> Type
   univ : Bool -> Type
   σ    : ∀ {k s} -> (A : Univ k) -> (⟦ A ⟧ -> Univ s) -> Univ (k ∨ s)
   π    : ∀ {k s} -> (A : Univ k) -> (⟦ A ⟧ -> Univ s) -> Univ  s
-  list : ∀ {k} -> Univ k -> Type
-  tele : Type -> Type
-  rose : ∀ {I} -> Desc I -> ⟦ I ⟧ -> Type
+  desc : Type -> Type
+  mu   : ∀ {I} -> Desc I -> ⟦ I ⟧ -> Type
 
-⟦ bot       ⟧ = ⊥
-⟦ top       ⟧ = ⊤
-⟦ unit      ⟧ = Unit
-⟦ nat       ⟧ = ℕ
-⟦ univ k    ⟧ = Univ k
-⟦ σ A B     ⟧ = ∃ λ x -> ⟦ B x ⟧
-⟦ π A B     ⟧ = ∀   x -> ⟦ B x ⟧
-⟦ list A    ⟧ = List ⟦ A ⟧
-⟦ tele A    ⟧ = Tele ⟦ A ⟧
-⟦ rose cs i ⟧ = Rose cs i
+⟦ bot    ⟧ = ⊥
+⟦ top    ⟧ = ⊤
+⟦ nat    ⟧ = ℕ
+⟦ fin n  ⟧ = Fin n
+⟦ univ k ⟧ = Univ k
+⟦ σ A B  ⟧ = ∃ λ x -> ⟦ B x ⟧
+⟦ π A B  ⟧ = ∀   x -> ⟦ B x ⟧
+⟦ desc I ⟧ = Desc I
+⟦ mu D i ⟧ = μ D i
 
 prop = univ false
 type = univ true
@@ -90,16 +77,6 @@ A & B = σ A λ _ -> B
 
 _⇒_ : ∀ {k s} -> Univ k -> Univ s -> Univ  s
 A ⇒ B = π A λ _ -> B
-
--- What if `Tele' would be defined in terms of other constructors?
--- Then (desc I = list (tele (list (tele I) & I))). Looks nicer and more reflexive.
-
--- tele′ : ⟦ nat ⇒ type ⇒ type ⟧
--- tele′  0      B = B
--- tele′ (suc n) B = σ type λ A -> A ⇒ tele′ n B
-
--- tele : ⟦ type ⇒ type ⟧
--- tele B = σ nat λ n -> tele′ n B
 
 _≟ᵇ_ : Bool -> Bool -> Prop
 false ≟ᵇ false = top
@@ -111,73 +88,73 @@ _≟ⁿ_ : ℕ -> ℕ -> Prop
 suc n ≟ⁿ suc m = n ≟ⁿ m
 _     ≟ⁿ _     = bot
 
+_≟ᶠ_ : ∀ {n m} -> Fin n -> Fin m -> Prop
+fzero  ≟ᶠ fzero  = top
+fsuc i ≟ᶠ fsuc j = i ≟ᶠ j
+_      ≟ᶠ _      = bot
+
+_≅d_ : ∀ {I₁ I₂} -> Desc I₁ -> Desc I₂ -> Prop
+var i₁  ≅d var i₂  = i₁ ≅ i₂
+π A₁ B₁ ≅d π A₂ B₂ = A₁ ≈ A₂ & B₁ ≅ B₂
+D₁ ⊛ E₁ ≅d D₂ ⊛ E₂ = D₁ ≅d D₂ & E₁ ≅d E₂
+_       ≅d _       = bot
+
 _≈_ {false} {false} A₁ A₂ = A₁ ⇒ A₂ & A₂ ⇒ A₁
 _≈_ {true } {true } A₁ A₂ = A₁ ≃ A₂
 _≈_                 _  _  = bot
 
-bot         ≃ bot         = top
-top         ≃ top         = top
-unit        ≃ unit        = top
-nat         ≃ nat         = top
-univ k₁     ≃ univ k₂     = k₁ ≟ᵇ k₂
-σ A₁ B₁     ≃ σ A₂ B₂     = A₁ ≈ A₂ & B₁ ≅ B₂
-π A₁ B₁     ≃ π A₂ B₂     = A₂ ≈ A₁ & π _ λ x₁ -> π _ λ x₂ -> x₂ ≅ x₁ ⇒ B₁ x₁ ≈ B₂ x₂
-list A₁     ≃ list A₂     = A₁ ≈ A₂
-tele A₁     ≃ tele A₂     = A₁ ≈ A₂
-rose cs₁ i₁ ≃ rose cs₂ i₂ = cs₁ ≅ cs₂ & i₂ ≅ i₁
-_           ≃ _           = bot
-
-_≅_ {A = bot        } {bot        } _   _   = top
-_≅_ {A = top        } {top        } _   _   = top
-_≅_ {A = unit       } {unit       } _   _   = top
-_≅_ {A = nat        } {nat        } n₁  n₂  = n₁ ≟ⁿ n₂
-_≅_ {A = univ k₁    } {univ k₂    } A₁  A₂  = A₁ ≈ A₂
-_≅_ {A = σ A₁ B₁    } {σ A₂ B₂    } p₁  p₂  = let x₁ , y₁ = p₁ ; x₂ , y₂ = p₂ in x₁ ≅ x₂ & y₁ ≅ y₂
-_≅_ {A = π A₁ B₁    } {π A₂ B₂    } f₁  f₂  = π _ λ x₁ -> π _ λ x₂ -> x₁ ≅ x₂ ⇒ f₁ x₁ ≅ f₂ x₂
-_≅_ {A = list A₁    } {list A₂    } xs₁ xs₂ = xs₁ ≅s xs₂
-_≅_ {A = tele A₁    } {tele A₂    } t₁  t₂  = t₁  ≅t t₂
-_≅_ {A = rose cs₁ i₁} {rose cs₂ i₂} r₁  r₂  = let node cs₁ = r₁ ; node cs₂ = r₂ in cs₁ ≅c cs₂
-_≅_                                 _   _   = bot
-
-[]       ≅s []       = top
-x₁ ∷ xs₁ ≅s x₂ ∷ xs₂ = x₁ ≅ x₂ & xs₁ ≅s xs₂
-_        ≅s _        = bot
-
-ret x₁   ≅t ret x₂   = x₁ ≅ x₂
-pi A₁ B₁ ≅t pi A₂ B₂ = A₁ ≈ A₂ & B₁ ≅ B₂
-_        ≅t _        = bot
-
-_≅f_ : ∀ {k₁ k₂} {A₁ A₂ : Type} {B₁ : ⟦ A₁ ⟧ -> Univ k₁} {B₂ : ⟦ A₂ ⟧ -> Univ k₂}
-     -> ∃ (Fold (λ x -> ⟦ B₁ x ⟧)) -> ∃ (Fold (λ x -> ⟦ B₂ x ⟧)) -> Prop
-ret x₁   , y₁ ≅f ret x₂   , y₂ = x₁ ≅ x₂ & y₁ ≅ y₂
-pi A₁ B₁ , f₁ ≅f pi A₂ B₂ , f₂ = π A₁ λ x₁ -> π A₂ λ x₂ -> x₁ ≅ x₂ ⇒ B₁ x₁ , f₁ x₁ ≅f B₂ x₂ , f₂ x₂
-_             ≅f _             = bot
-
-_≅a_ : ∀ {k₁ k₂} {A₁ A₂ : Type} {B₁ : ⟦ A₁ ⟧ -> Univ k₁} {B₂ : ⟦ A₂ ⟧ -> Univ k₂} {is₁ is₂}
-     -> All (Fold (λ x -> ⟦ B₁ x ⟧)) is₁ -> All (Fold (λ x -> ⟦ B₂ x ⟧)) is₂ -> Prop
-[]                  ≅a []                  = top
-_∷_ {x = t₁} f₁ fs₁ ≅a _∷_ {x = t₂} f₂ fs₂ = t₁ , f₁ ≅f t₂ , f₂ & fs₁ ≅a fs₂
-_                   ≅a _                   = bot
+bot      ≃ bot      = top
+top      ≃ top      = top
+nat      ≃ nat      = top
+fin n₁   ≃ fin n₂   = n₁ ≟ⁿ n₂
+univ k₁  ≃ univ k₂  = k₁ ≟ᵇ k₂
+σ A₁ B₁  ≃ σ A₂ B₂  = A₁ ≈ A₂ & B₁ ≅ B₂
+π A₁ B₁  ≃ π A₂ B₂  = A₂ ≈ A₁ & π A₁ λ x₁ -> π A₂ λ x₂ -> x₂ ≅ x₁ ⇒ B₁ x₁ ≈ B₂ x₂
+desc I₁  ≃ desc I₂  = I₁ ≃ I₂
+mu D₁ i₁ ≃ mu D₂ i₂ = D₁ ≅d D₂ & i₁ ≅ i₂
+_        ≃ _        = bot
 
 _≅e_ : ∀ {I₁ I₂} {F₁ : ⟦ I₁ ⟧ -> Type} {F₂ : ⟦ I₂ ⟧ -> Type} {i₁ i₂}
-     -> ∃ (Extend (λ x -> ⟦ F₁ x ⟧) i₁) -> ∃ (Extend (λ x -> ⟦ F₂ x ⟧) i₂) -> Prop
-ret (t₁ , i₁) , fs₁ , q₁ ≅e ret (t₂ , i₂) , fs₂ , q₂ = i₁ ≅ i₂ & fs₁ ≅a fs₂
-pi A₁ B₁      , x₁  , e₁ ≅e pi A₂ B₂      , x₂  , e₂ = x₁ ≅ x₂ & B₁ x₁ , e₁ ≅e B₂ x₂ , e₂
-_                        ≅e _                        = bot
+     -> (∃ λ D₁ -> Extend D₁ (λ x₁ -> ⟦ F₁ x₁ ⟧) i₁)
+     -> (∃ λ D₂ -> Extend D₂ (λ x₂ -> ⟦ F₂ x₂ ⟧) i₂)
+     -> Prop
 
-here {x = c₁} e₁ ≅c here {x = c₂} e₂ = c₁ , e₁ ≅e c₂ , e₂
-there cs₁        ≅c there cs₂        = cs₁ ≅c cs₂
-_                ≅c _                = bot
+_≅_ {A = bot     } {bot     } _  _  = top
+_≅_ {A = top     } {top     } _  _  = top
+_≅_ {A = nat     } {nat     } n₁ n₂ = n₁ ≟ⁿ n₂
+_≅_ {A = fin n₁  } {fin n₂  } i₁ i₂ = i₁ ≟ᶠ i₂
+_≅_ {A = univ k₁ } {univ k₂ } A₁ A₂ = A₁ ≈ A₂
+_≅_ {A = σ A₁ B₁ } {σ A₂ B₂ } p₁ p₂ = let x₁ , y₁ = p₁ ; x₂ , y₂ = p₂ in x₁ ≅ x₂ & y₁ ≅ y₂
+_≅_ {A = π A₁ B₁ } {π A₂ B₂ } f₁ f₂ = π A₁ λ x₁ -> π A₂ λ x₂ -> x₁ ≅ x₂ ⇒ f₁ x₁ ≅ f₂ x₂
+_≅_ {A = desc I₁ } {desc I₂ } D₁ D₂ = D₁ ≅d D₂
+_≅_ {A = mu D₁ i₁} {mu D₂ i₂} d₁ d₂ = let node e₁ = d₁; node e₂ = d₂ in D₁ , e₁ ≅e D₂ , e₂
+_≅_                           _  _  = bot
 
-pattern #₀ y = node (here y)
-pattern #₁ y = node (there (here y))
-pattern #₂ y = node (there (there (here y)))
-pattern #₃ y = node (there (there (there (here y))))
-pattern #₄ y = node (there (there (there (there (here y)))))
-pattern #₅ y = node (there (there (there (there (there (here y))))))
+_≅s_ : ∀ {I₁ I₂} {F₁ : ⟦ I₁ ⟧ -> Type} {F₂ : ⟦ I₂ ⟧ -> Type}
+     -> (∃ λ D₁ -> ⟦ D₁ ⟧ᴰ λ x₁ -> ⟦ F₁ x₁ ⟧)
+     -> (∃ λ D₂ -> ⟦ D₂ ⟧ᴰ λ x₂ -> ⟦ F₂ x₂ ⟧)
+     -> Prop
+var i₁  , x₁      ≅s var i₂  , x₂      = x₁ ≅ x₂
+π A₁ B₁ , f₁      ≅s π A₂ B₂ , f₂      =
+  π A₁ λ x₁ -> π A₂ λ x₂ -> x₁ ≅ x₂ ⇒ B₁ x₁ , f₁ x₁ ≅s B₂ x₂ , f₂ x₂ 
+D₁ ⊛ E₁ , s₁ , t₁ ≅s D₂ ⊛ E₂ , s₂ , t₂ = D₁ , s₁ ≅s D₂ , s₂ & E₁ , t₁ ≅s E₂ , t₂
+_                 ≅s _                 = bot
 
-pattern ⟨⟩₁ = node (there ())
-pattern ⟨⟩₂ = node (there (there ()))
-pattern ⟨⟩₃ = node (there (there (there ())))
-pattern ⟨⟩₄ = node (there (there (there (there ()))))
-pattern ⟨⟩₅ = node (there (there (there (there (there ())))))
+var i₁  , q₁      ≅e var i₂  , q₂      = i₁ ≅ i₂
+π A₁ B₁ , x₁ , e₁ ≅e π A₂ B₂ , x₂ , e₂ = B₁ x₁ , e₁ ≅e B₂ x₂ , e₂
+D₁ ⊛ E₁ , s₁ , e₁ ≅e D₂ ⊛ E₂ , s₂ , e₂ = D₁ , s₁ ≅s D₂ , s₂ & E₁ , e₁ ≅e E₂ , e₂
+_                 ≅e _                 = bot
+
+pattern #₀ p = node (fzero , p)
+pattern #₁ p = node (fsuc fzero , p)
+pattern #₂ p = node (fsuc (fsuc fzero) , p)
+pattern #₃ p = node (fsuc (fsuc (fsuc fzero)) , p)
+pattern #₄ p = node (fsuc (fsuc (fsuc (fsuc fzero))) , p)
+pattern #₅ p = node (fsuc (fsuc (fsuc (fsuc (fsuc fzero)))) , p)
+
+pattern ⟨⟩₀ = node (() , _)
+pattern ⟨⟩₁ = node (fsuc () , _)
+pattern ⟨⟩₂ = node (fsuc (fsuc ()) , _)
+pattern ⟨⟩₃ = node (fsuc (fsuc (fsuc ())) , _)
+pattern ⟨⟩₄ = node (fsuc (fsuc (fsuc (fsuc ()))) , _)
+pattern ⟨⟩₅ = node (fsuc (fsuc (fsuc (fsuc (fsuc ())))) , _)

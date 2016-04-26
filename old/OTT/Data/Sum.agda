@@ -5,13 +5,13 @@ open import OTT.Main
 infixr 3 _⊕_ _⊎_
 
 _⊕_ : ∀ {k s} -> Univ k -> Univ s -> Type
-A ⊕ B = cmu ((A ⇨ var tr) ∷ (B ⇨ var tr) ∷ []) tr
+A ⊕ B = rose ((A ⇨ ret ([] , triv)) ∷ (B ⇨ ret ([] , triv)) ∷ []) triv
 
 _⊎_ : ∀ {k s} -> Univ k -> Univ s -> Set
 A ⊎ B = ⟦ A ⊕ B ⟧
 
-pattern inj₁ x = #₀ (x , tt)
-pattern inj₂ y = #₁ (y , tt)
+pattern inj₁ x = #₀ (x , [] , tt)
+pattern inj₂ y = #₁ (y , [] , tt)
 
 [_,_] : ∀ {k s π} {A : Univ k} {B : Univ s} {P : A ⊎ B -> Set π}
       -> (∀ x -> P (inj₁ x)) -> (∀ y -> P (inj₂ y)) -> ∀ s -> P s

@@ -5,9 +5,9 @@ open import OTT.Main
 infix 3 _≡_
 
 _≡_ : ∀ {A} -> ⟦ A ⟧ -> ⟦ A ⟧ -> Type
-x ≡ y = mu (var x) y
+x ≡ y = rose (ret ([] , x) ∷ []) y
 
-pattern preflₑ q = node q
+pattern preflₑ q = #₀ ([] , q)
 
 prefl : ∀ {A} {x : ⟦ A ⟧} -> ⟦ x ≡ x ⟧
 prefl {x = x} = preflₑ (refl x)
@@ -18,6 +18,7 @@ Jₕₑ : ∀ {π A} {x y : ⟦ A ⟧}
     -> (q : ⟦ x ≡ y ⟧)
     -> P q
 Jₕₑ P z (preflₑ q) = z q
+Jₕₑ P z  ⟨⟩₁
 
 Jₕ : ∀ {k A} {x y : ⟦ A ⟧}
    -> (P : ∀ {y} -> ⟦ x ≡ y ⟧ -> Univ k)

@@ -5,11 +5,23 @@ module OTT.Coerce where
 open import OTT.Prelude
 open import OTT.Core
 
+-- I'll probably fix this.
+postulate noway : {A : Set} -> A
+
 Coerce : ∀ {k₁ k₂} -> ⟦ k₁ ≟ᵇ k₂ ⟧ -> Univ k₁ -> Univ k₂
 Coerce {false} {false} _  A = A
 Coerce {true } {true } _  A = A
 Coerce {false} {true } () A
 Coerce {true } {false} () A
+
+coerceℕFam : ∀ {n₁ n₂} -> (A : ℕ -> Set) -> ⟦ n₁ ≅ n₂ ⟧ -> A n₁ -> A n₂
+coerceℕFam {0}      {0}      A q  x = x
+coerceℕFam {suc n₁} {suc n₂} A q  x = coerceℕFam (A ∘ suc) q x
+coerceℕFam {0}      {suc _}  A () x
+coerceℕFam {suc _}  {0}      A () x
+
+coerceFin : ∀ {n₁ n₂} -> ⟦ n₁ ≅ n₂ ⟧ -> Fin n₁ -> Fin n₂
+coerceFin = coerceℕFam Fin
 
 mutual
   coerce : ∀ {k s} {A : Univ k} {B : Univ s} -> ⟦ A ≈ B ⇒ A ⇒ B ⟧
@@ -19,168 +31,52 @@ mutual
   coerce {true } {false}  ()
 
   coerce′ : ∀ {k s} {A : Univ k} {B : Univ s} -> ⟦ A ≃ B ⇒ A ⇒ B ⟧
-  coerce′ {A = bot        } {bot        } q ()
-  coerce′ {A = top        } {top        } q _  = _
-  coerce′ {A = unit       } {unit       } q _  = _
-  coerce′ {A = nat        } {nat        } q n  = n
-  coerce′ {A = univ k₁    } {univ k₂    } q A  = Coerce q A
-  coerce′ {A = σ A₁ B₁    } {σ A₂ B₂    } q p  = let q₁ , q₂ = q ; x , y = p in
+  coerce′ {A = bot     } {bot     } q ()
+  coerce′ {A = top     } {top     } q _  = _
+  coerce′ {A = nat     } {nat     } q n  = n
+  coerce′ {A = fin n₁  } {fin n₂  } q i  = coerceFin q i
+  coerce′ {A = univ k₁ } {univ k₂ } q A  = Coerce q A
+  coerce′ {A = σ A₁ B₁ } {σ A₂ B₂ } q p  = let q₁ , q₂ = q ; x , y = p in
     coerce q₁ x , coerce (q₂ x (coerce q₁ x) (coherence q₁ x)) y
-  coerce′ {A = π A₁ B₁    } {π A₂ B₂    } q f  = let q₁ , q₂ = q in
+  coerce′ {A = π A₁ B₁ } {π A₂ B₂ } q f  = let q₁ , q₂ = q in
     λ x -> coerce (q₂ (coerce q₁ x) x (coherence q₁ x)) (f (coerce q₁ x))
-  coerce′ {A = list A₁    } {list A₂    } q xs = lmap (coerce q) xs
-  coerce′ {A = tele A₁    } {tele A₂    } q t  = coerceTele q t
-  coerce′ {A = rose cs₁ i₁} {rose cs₂ i₂} q r  = coerceRose q r
-  coerce′ {A = bot     } {top     } ()
-  coerce′ {A = bot     } {unit    } ()
-  coerce′ {A = bot     } {nat     } ()
-  coerce′ {A = bot     } {univ _  } ()
-  coerce′ {A = bot     } {σ _ _   } ()
-  coerce′ {A = bot     } {π _ _   } ()
-  coerce′ {A = bot     } {list _  } ()
-  coerce′ {A = bot     } {tele _  } ()
-  coerce′ {A = bot     } {rose _ _} ()
-  coerce′ {A = top     } {bot     } ()
-  coerce′ {A = top     } {unit    } ()
-  coerce′ {A = top     } {nat     } ()
-  coerce′ {A = top     } {univ _  } ()
-  coerce′ {A = top     } {σ _ _   } ()
-  coerce′ {A = top     } {π _ _   } ()
-  coerce′ {A = top     } {list _  } ()
-  coerce′ {A = top     } {tele _  } ()
-  coerce′ {A = top     } {rose _ _} ()
-  coerce′ {A = unit    } {bot     } ()
-  coerce′ {A = unit    } {top     } ()
-  coerce′ {A = unit    } {nat     } ()
-  coerce′ {A = unit    } {univ _  } ()
-  coerce′ {A = unit    } {σ _ _   } ()
-  coerce′ {A = unit    } {π _ _   } ()
-  coerce′ {A = unit    } {list _  } ()
-  coerce′ {A = unit    } {tele _  } ()
-  coerce′ {A = unit    } {rose _ _} ()
-  coerce′ {A = nat     } {bot     } ()
-  coerce′ {A = nat     } {top     } ()
-  coerce′ {A = nat     } {unit    } ()
-  coerce′ {A = nat     } {univ _  } ()
-  coerce′ {A = nat     } {σ _ _   } ()
-  coerce′ {A = nat     } {π _ _   } ()
-  coerce′ {A = nat     } {list _  } ()
-  coerce′ {A = nat     } {tele _  } ()
-  coerce′ {A = nat     } {rose _ _} ()
-  coerce′ {A = univ _  } {bot     } ()
-  coerce′ {A = univ _  } {top     } ()
-  coerce′ {A = univ _  } {unit    } ()
-  coerce′ {A = univ _  } {nat     } ()
-  coerce′ {A = univ _  } {σ _ _   } ()
-  coerce′ {A = univ _  } {π _ _   } ()
-  coerce′ {A = univ _  } {list _  } ()
-  coerce′ {A = univ _  } {tele _  } ()
-  coerce′ {A = univ _  } {rose _ _} ()
-  coerce′ {A = σ _ _   } {bot     } ()
-  coerce′ {A = σ _ _   } {top     } ()
-  coerce′ {A = σ _ _   } {unit    } ()
-  coerce′ {A = σ _ _   } {nat     } ()
-  coerce′ {A = σ _ _   } {univ _  } ()
-  coerce′ {A = σ _ _   } {π _ _   } ()
-  coerce′ {A = σ _ _   } {list _  } ()
-  coerce′ {A = σ _ _   } {tele _  } ()
-  coerce′ {A = σ _ _   } {rose _ _} ()
-  coerce′ {A = π _ _   } {bot     } ()
-  coerce′ {A = π _ _   } {top     } ()
-  coerce′ {A = π _ _   } {unit    } ()
-  coerce′ {A = π _ _   } {nat     } ()
-  coerce′ {A = π _ _   } {univ _  } ()
-  coerce′ {A = π _ _   } {σ _ _   } ()
-  coerce′ {A = π _ _   } {list _  } ()
-  coerce′ {A = π _ _   } {tele _  } ()
-  coerce′ {A = π _ _   } {rose _ _} ()
-  coerce′ {A = list _  } {bot     } ()
-  coerce′ {A = list _  } {top     } ()
-  coerce′ {A = list _  } {unit    } ()
-  coerce′ {A = list _  } {nat     } ()
-  coerce′ {A = list _  } {univ _  } ()
-  coerce′ {A = list _  } {σ _ _   } ()
-  coerce′ {A = list _  } {π _ _   } ()
-  coerce′ {A = list _  } {tele _  } ()
-  coerce′ {A = list _  } {rose _ _} ()
-  coerce′ {A = tele _  } {bot     } ()
-  coerce′ {A = tele _  } {top     } ()
-  coerce′ {A = tele _  } {unit    } ()
-  coerce′ {A = tele _  } {nat     } ()
-  coerce′ {A = tele _  } {univ _  } ()
-  coerce′ {A = tele _  } {σ _ _   } ()
-  coerce′ {A = tele _  } {π _ _   } ()
-  coerce′ {A = tele _  } {list _  } ()
-  coerce′ {A = tele _  } {rose _ _} ()
-  coerce′ {A = rose _ _} {bot     } ()
-  coerce′ {A = rose _ _} {top     } ()
-  coerce′ {A = rose _ _} {unit    } ()
-  coerce′ {A = rose _ _} {nat     } ()
-  coerce′ {A = rose _ _} {univ _  } ()
-  coerce′ {A = rose _ _} {σ _ _   } ()
-  coerce′ {A = rose _ _} {π _ _   } ()
-  coerce′ {A = rose _ _} {list _  } ()
-  coerce′ {A = rose _ _} {tele _  } ()
-    -- generated by http://ideone.com/AYlShA
+  coerce′ {A = mu D₁ i₁} {mu D₂ i₂} q d  = let qD , qi = q in coerceMu qD qi d
+  coerce′ _ _ = noway
 
-  coerceTele : {A₁ A₂ : Type} -> ⟦ A₁ ≃ A₂ ⟧ -> Tele ⟦ A₁ ⟧ -> Tele ⟦ A₂ ⟧
-  coerceTele q (ret x)  = ret (coerce′ q x)
-  coerceTele q (pi A B) = pi A λ x -> coerceTele q (B x)
+  coerceSem : ∀ {I₁ I₂} {F₁ : ⟦ I₁ ⟧ -> Type} {F₂ : ⟦ I₂ ⟧ -> Type}
+            -> (D₁ : Desc I₁)
+            -> (D₂ : Desc I₂)
+            -> ⟦ D₁ ≅ D₂ ⟧
+            -> ⟦ F₁ ≅ F₂ ⟧
+            -> (⟦ D₁ ⟧ᴰ λ x₁ -> ⟦ F₁ x₁ ⟧)
+            -> (⟦ D₂ ⟧ᴰ λ x₂ -> ⟦ F₂ x₂ ⟧)
+  coerceSem (var j₁)  (var j₂)   qj       qF  x      = coerce (qF j₁ j₂ qj) x
+  coerceSem (π A₁ B₁) (π A₂ B₂) (qA , qB) qF  f      = λ x ->
+    let qA′ = sym A₁ {A₂} qA
+        x′  = coerce qA′ x
+    in coerceSem (B₁ x′) (B₂ x) (qB x′ x (sym x (coherence qA′ x))) qF (f x′)
+  coerceSem (D₁ ⊛ E₁) (D₂ ⊛ E₂) (qD , qE) qF (s , t) =
+    coerceSem D₁ D₂ qD qF s , coerceSem E₁ E₂ qE qF t
+  coerceSem _ _ qD qF e = noway
 
-  coerceFold : ∀ {k₁ k₂} {A₁ A₂ : Type} {B₁ : ⟦ A₁ ⟧ -> Univ k₁} {B₂ : ⟦ A₂ ⟧ -> Univ k₂} {t₂}
-             -> ∀ t₁
-             -> ⟦ B₁ ≅ B₂ ⟧
-             -> ⟦ t₁ ≅ t₂ ⟧
-             -> Fold (λ x -> ⟦ B₁ x ⟧) t₁
-             -> Fold (λ x -> ⟦ B₂ x ⟧) t₂
-  coerceFold {t₂ = ret x₂  } (ret x₁  ) qB qx y = coerce (qB x₁ x₂ qx) y
-  coerceFold {t₂ = pi A₂ B₂} (pi A₁ B₁) qB qt f =
-    λ x -> let qA , qk = qt ; qA′ = sym A₁ {A₂} qA ; x′ = coerce qA′ x in
-      coerceFold (B₁ x′) qB (qk x′ x (sym x (coherence qA′ x))) (f x′)
-  coerceFold {t₂ = pi _ _  } (ret _   ) qB () f
-  coerceFold {t₂ = ret _   } (pi _ _  ) qB () f
+  coerceExtend : ∀ {I₁ I₂} {F₁ : ⟦ I₁ ⟧ -> Type} {F₂ : ⟦ I₂ ⟧ -> Type} {i₁ i₂}
+               -> (D₁ : Desc I₁)
+               -> (D₂ : Desc I₂)
+               -> ⟦ D₁ ≅ D₂ ⟧
+               -> ⟦ F₁ ≅ F₂ ⟧
+               -> ⟦ i₁ ≅ i₂ ⟧
+               -> Extend D₁ (λ x₁ -> ⟦ F₁ x₁ ⟧) i₁
+               -> Extend D₂ (λ x₂ -> ⟦ F₂ x₂ ⟧) i₂
+  coerceExtend (var j₁)  (var j₂)   qj       qF qi  qji    = trans j₂ (right j₁ qj qji) qi
+  coerceExtend (π A₁ B₁) (π A₂ B₂) (qA , qB) qF qi (x , e) = let x′ = coerce qA x in
+    x′ , coerceExtend (B₁ x) (B₂ x′) (qB x x′ (coherence qA x)) qF qi e
+  coerceExtend (D₁ ⊛ E₁) (D₂ ⊛ E₂) (qD , qE) qF qi (s , e) =
+    coerceSem D₁ D₂ qD qF s , coerceExtend E₁ E₂ qE qF qi e
+  coerceExtend _ _ qD qF qi e = noway
 
-  coerceAll : ∀ {k₁ k₂} {A₁ A₂ : Type} {B₁ : ⟦ A₁ ⟧ -> Univ k₁} {B₂ : ⟦ A₂ ⟧ -> Univ k₂} {xs₁ xs₂}
-            -> ⟦ B₁ ≅ B₂ ⟧
-            -> ⟦ xs₁ ≅ xs₂ ⟧
-            -> All (Fold (λ x -> ⟦ B₁ x ⟧)) xs₁
-            -> All (Fold (λ x -> ⟦ B₂ x ⟧)) xs₂
-  coerceAll {xs₂ = []   } qB qxs  []                 = []
-  coerceAll {xs₂ = _ ∷ _} qB qxs (_∷_ {x = t₁} f fs) = let qt , qxs' = qxs in
-    coerceFold t₁ qB qt f ∷ coerceAll qB qxs' fs
-  coerceAll {xs₂ = _ ∷ _} qB ()   []
-  coerceAll {xs₂ = []   } qB ()  (_ ∷ _)
-
-  coerceExtend : ∀ {I₁ I₂} {cs₁ : Desc I₁} {cs₂ : Desc I₂} {i₁ i₂} {t₂}
-               -> ∀ t₁
-               -> ⟦ t₁ ≅ t₂ ⟧
-               -> ⟦ rose cs₁ i₁ ≅ rose cs₂ i₂ ⟧
-               -> Extend (Rose cs₁) i₁ t₁
-               -> Extend (Rose cs₂) i₂ t₂
-  coerceExtend {t₂ = ret p₂  } (ret p₁  ) qt qr p =
-    let t₁ , i₁ = p₁ ; t₂ , i₂ = p₂ ; qp₁ , qp₂ = qt ; qcs , qi = qr ; a , q₃ = p in
-      coerceAll (λ x₁ x₂ q -> qcs , sym x₁ q) qp₁ a , right i₁ qp₂ (left i₁ q₃ qi)
-  coerceExtend {t₂ = pi A₂ B₂} (pi A₁ B₁) qt qr e =
-    let qA , qk = qt ; x , e' = e ; x′ = coerce qA x in
-      x′ , coerceExtend (B₁ x) (qk x x′ (coherence qA x)) qr e'
-  coerceExtend {t₂ = pi A₂ B₂} (ret p₁  ) () qr e
-  coerceExtend {t₂ = ret p₂  } (pi A₁ B₁) () qr e
-
-  coerceChilds : ∀ {I₁ I₂} {cs₁ ds₁ : Desc I₁} {cs₂ ds₂ : Desc I₂} {i₁ i₂}
-               -> ⟦ rose cs₁ i₁ ≅ rose cs₂ i₂ ⟧
-               -> ⟦ rose ds₁ i₁ ≅ rose ds₂ i₂ ⟧
-               -> Childs cs₁ ds₁ i₁
-               -> Childs cs₂ ds₂ i₂
-  coerceChilds {ds₂ = _ ∷ _} {i₂} {i₁} qc  qd      (here {x = t₁} e) =
-    here (coerceExtend t₁ (proj₁ (proj₁ qd)) qc e)
-  coerceChilds {ds₂ = _ ∷ _}           qc  qd      (there a)         =
-    let (_ , q₁) , q₂ = qd in there (coerceChilds qc (q₁ , q₂) a)
-  coerceChilds {ds₂ = []   }           qc (() , _) (here  _)
-  coerceChilds {ds₂ = []   }           qc (() , _) (there _)
-
-  coerceRose : ∀ {I₁ I₂} {cs₁ : Desc I₁} {cs₂ : Desc I₂} {i₁ i₂}
-             -> ⟦ rose cs₁ i₁ ≅ rose cs₂ i₂ ⟧ -> Rose cs₁ i₁ -> Rose cs₂ i₂
-  coerceRose q (node chs) = node (coerceChilds q q chs)
+  coerceMu : ∀ {I₁ I₂} {D₁ : Desc I₁} {D₂ : Desc I₂} {i₁ i₂}
+           -> ⟦ D₁ ≅ D₂ ⟧ -> ⟦ i₁ ≅ i₂ ⟧ -> μ D₁ i₁ -> μ D₂ i₂
+  coerceMu {D₁ = D₁} {D₂} qD qi (node d₁) = node (coerceExtend D₁ D₂ qD (λ _ _ qj -> qD , qj) qi d₁)
 
   postulate
     refl      : ∀ {k} {A : Univ k} -> (x : ⟦ A ⟧) -> ⟦ x ≅ x ⟧

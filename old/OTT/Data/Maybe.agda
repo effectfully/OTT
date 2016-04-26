@@ -3,13 +3,13 @@ module OTT.Data.Maybe where
 open import OTT.Main
 
 maybe : ∀ {k} -> Univ k -> Type
-maybe A = cmu (var tr ∷ (A ⇨ var tr) ∷ []) tr
+maybe A = rose (ret ([] , triv) ∷ (A ⇨ ret ([] , triv)) ∷ []) triv
 
 Maybe : ∀ {k} -> Univ k -> Set
 Maybe A = ⟦ maybe A ⟧
 
-pattern nothing = #₀  tt
-pattern just x  = #₁ (x , tt)
+pattern nothing = #₀ ([] , tt)
+pattern just x  = #₁ (x , [] , tt)
 
 elimMaybe : ∀ {k π} {A : Univ k} {P : Maybe A -> Set π}
           -> (∀ x -> P (just x)) -> P nothing -> ∀ a -> P a

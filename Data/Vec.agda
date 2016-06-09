@@ -7,7 +7,7 @@ infixr 5 _∷ᵥ_
 vec : ∀ {a} -> Type a -> ℕ -> Type a
 vec A = icmu
       $ var 0
-      ∷ (πᵈ nat λ n -> A ⇒ᵈ var n ⊛ var (suc n))
+      ∷ (π nat λ n -> A ⇨ var n ⊛ var (suc n))
       ∷ []
 
 Vec : ∀ {a} -> Type a -> ℕ -> Set

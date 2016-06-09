@@ -2,10 +2,10 @@ module OTT.Data.Fin where
 
 open import OTT.Main
 
-fin : ℕ -> Type lzeroₘ
+fin : ℕ -> Type₀
 fin = icmu
-    $ (πᵈ nat λ n -> var (suc n))
-    ∷ (πᵈ nat λ n -> var n ⊛ var (suc n))
+    $ (π nat λ n -> var (suc n))
+    ∷ (π nat λ n -> var n ⊛ var (suc n))
     ∷ []
 
 Fin : ℕ -> Set

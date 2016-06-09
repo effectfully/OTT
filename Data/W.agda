@@ -3,7 +3,7 @@ module OTT.Data.W where
 open import OTT.Main
 
 w : ∀ {a b} {α : Level a} {β : Level b} -> (A : Univ α) -> (⟦ A ⟧ -> Univ β) -> Univ (α ⊔ β)
-w A B = mu (πᵈ A λ x -> (B x ⇒ᵈ pos) ⊛ pos)
+w A B = mu (π A λ x -> (B x ⇨ pos) ⊛ pos)
 
 W : ∀ {a b} {α : Level a} {β : Level b} -> (A : Univ α) -> (⟦ A ⟧ -> Univ β) -> Set
 W A B = ⟦ w A B ⟧

@@ -3,7 +3,7 @@ module OTT.Data.Maybe where
 open import OTT.Main
 
 maybe : ∀ {a} {α : Level a} -> Univ α -> Type a
-maybe A = cmu $ pos ∷ (A ⇒ᵈ pos) ∷ []
+maybe A = cmu $ pos ∷ (A ⇨ pos) ∷ []
 
 Maybe : ∀ {a} {α : Level a} -> Univ α -> Set
 Maybe A = ⟦ maybe A ⟧

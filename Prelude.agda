@@ -14,8 +14,9 @@ infix 4 ,_
 
 pattern ,_ y = _ , y
 
--- postulate
-  -- ⊔ₘ-cong : ∀ {a₁ a₂ b₁ b₂} -> a₁ ≡ a₂ -> b₁ 
+instance
+  iprefl : ∀ {α} {A : Set α} {x : A} -> x ≡ x
+  iprefl = prefl
 
 pright : ∀ {α} {A : Set α} {x y z : A} -> x ≡ y -> x ≡ z -> y ≡ z
 pright prefl prefl = prefl

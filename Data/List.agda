@@ -7,9 +7,9 @@ open import OTT.Coerce
 infixr 5 _∷_
 
 list : ∀ {a} -> Type a -> Type a
-list A = mu $ πᵈ (enum 2) λ
+list A = mu $ π (enum 2) λ
   { (tag  nothing)  -> pos
-  ; (tag (just tt)) -> A ⇒ᵈ pos ⊛ pos
+  ; (tag (just tt)) -> A ⇨ pos ⊛ pos
   }
 
 List : ∀ {a} -> Type a -> Set
@@ -31,7 +31,7 @@ length : ∀ {a} {A : Type a} -> List A -> ℕ
 length = foldList (const suc) 0
 
 icmu : ∀ {i a} {I : Type i} -> List (desc I (lsuc a)) -> ⟦ I ⟧ -> Type a
-icmu {I = I} Ds = imu $ πᵈ (enum (length Ds)) (go Ds ∘ detag) where
+icmu {I = I} Ds = imu $ π (enum (length Ds)) (go Ds ∘ detag) where
   go : ∀ {a} {A : Type a} -> (xs : List A) -> Enum (length xs) -> ⟦ A ⟧
   go  []           ()
   go (x ∷ [])      tt      = x

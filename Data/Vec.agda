@@ -47,8 +47,8 @@ elimVec′ : ∀ {n a π} {A : Type a}
          -> P (fromVec xs)
 elimVec′ P f z = elimVecₑ (P ∘ fromVec) (λ {n m xs} _ -> f {xs = xs}) (const z)
 
-elimVec : ∀ {n a b} {β : Level b} {A : Type a}
-        -> (P : ∀ {n} -> Vec A n -> Univ β)
+elimVec : ∀ {n a p} {π : Level p} {A : Type a}
+        -> (P : ∀ {n} -> Vec A n -> Univ π)
         -> (∀ {n} {xs : Vec A n} -> (x : ⟦ A ⟧) -> ⟦ P xs ⇒ P (x ∷ᵥ xs) ⟧)
         -> ⟦ P []ᵥ ⟧
         -> (xs : Vec A n)

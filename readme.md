@@ -14,7 +14,7 @@ data Level : MetaLevel -> Set where
 
 This is needed, because `Prop` is represented as `Univ lzero` and `Type a` is represented as `Univ (lsuc a)`, so we need to be able to pattern match on `α` in `Univ α` to decide whether a type is a proposition or a set (because propositions and sets are often handled differently), but metalevels are parametric and hence can't be pattern matched on.
 
-The form of descriptions used here is described at the bottom of [9] (the `CompProp` module). However in this development descriptions support full universe polymorphism (which makes them too down-to-earth to be able to perform levitation (not in a straightforward way at least), but that doesn't seem to be a problem). When defining a description we need to make sure that each `π` binds a variable which type lies in a smaller or the same universe than the type of the whole description. I.e. something like
+The form of descriptions used here is described at the bottom (the `CompProp` module) of [9]. However in this development descriptions support full universe polymorphism (which makes them too down-to-earth to be able to perform levitation (not in a straightforward way at least), but that doesn't seem to be a problem). When defining a description we need to make sure that each `π` binds a variable which type lies in a smaller or the same universe than the type of the whole description. I.e. something like
 
 `π : ∀ {α} -> α ≤ β -> (A : Univ α) -> (⟦ A ⟧ -> Desc I β) -> Desc I β`
 
@@ -129,3 +129,5 @@ coerce′ {A = π A₁ B₁ } {π A₂ B₂ } q f  = let q₁ , q₂ = q in
 [7] ["Inductive-Recursive Descriptions"](http://spire-lang.org/blog/2014/08/04/inductive-recursive-descriptions/), Larry Diehl
 
 [8] ["The Gengtle Art of Levitation"](https://jmchapman.github.io/papers/levitation.pdf), James Chapman, Pierre-Évariste Dagand, Conor McBride, Peter Morris
+
+[9] ["Descriptions"](http://effectfully.blogspot.ru/2016/04/descriptions.html)

@@ -57,7 +57,7 @@ _≃_ : ∀ {a b} {α : Level a} {β : Level b} -> Univ α -> Univ β -> Prop
 _≅_ : ∀ {a b} {α : Level a} {β : Level b} {A : Univ α} {B : Univ β} -> ⟦ A ⟧ -> ⟦ B ⟧ -> Prop
 
 data UDesc {i o} (I : Type i) (ω : Level o) : MetaLevel -> Set where
-  var[_] : ∀ {a} -> o ≡ a -> ⟦ I ⟧ -> UDesc I ω a
+  var[_] : ∀ {a} -> .(o ≡ a) -> ⟦ I ⟧ -> UDesc I ω a
   π[_]   : ∀ {a b} {α : Level a}
          -> .(a ⊔ₘ o ≡ b) -> (A : Univ α) -> (⟦ A ⟧ -> UDesc I ω b) -> UDesc I ω b
   _⊛_    : ∀ {o} -> UDesc I ω o -> UDesc I ω o -> UDesc I ω o

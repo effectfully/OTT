@@ -4,7 +4,7 @@ open import OTT.Main
 
 infixr 5 _∷ᵥ_
 
-vec : ∀ {{a}} -> Type a -> ℕ -> Type a
+vec : ∀ {a} -> Type a -> ℕ -> Type a
 vec A = icmu
       $ var 0
       ∷ (πᵈ nat λ n -> A ⇒ᵈ var n ⊛ var (suc n))

@@ -9,9 +9,12 @@ infixr 2 _⇒_ _⊛_
 infix  3 _≈_ _≃_ _≅_ _≅ᵉ_ _≅ᵈ_ _≊ᵈ_ _≅s_ _≅e_
 
 data Level : MetaLevel -> Set where
-  instance
-    lzero : Level lzeroₘ
-    lsuc  : ∀ a -> Level (lsucₘ a)
+  lzero : Level lzeroₘ
+  lsuc  : ∀ a -> Level (lsucₘ a)
+
+data SomeLevel : Set where
+  meta  : MetaLevel -> SomeLevel
+  level : ∀ {a} -> Level a -> SomeLevel
 
 natToMetaLevel : ℕ -> MetaLevel
 natToMetaLevel  0      = lzeroₘ
@@ -35,14 +38,13 @@ _⊔₀_ : ∀ {a b} -> Level a -> (β : Level b) -> Level (a ⊔ₘ₀ β)
 α ⊔₀ lzero  = lzero
 α ⊔₀ lsuc b = α ⊔ lsuc b
 
+meta-inj : ∀ {a b} -> meta a ≡ meta b -> a ≡ b
+meta-inj prefl = prefl
+
 Enum : ℕ -> Set
 Enum  0            = ⊥
 Enum  1            = ⊤
 Enum (suc (suc n)) = Maybe (Enum (suc n))
-
-data SomeLevel : Set where
-  meta  : MetaLevel -> SomeLevel
-  level : ∀ {a} -> Level a -> SomeLevel
 
 data Univ : ∀ {a} -> Level a -> Set
 
@@ -87,10 +89,10 @@ data Univ where
          -> (A : Univ α) -> (⟦ A ⟧ -> Univ β) -> Univ (α ⊔  β)
   π      : ∀ {a b} {α : Level a} {β : Level b}
          -> (A : Univ α) -> (⟦ A ⟧ -> Univ β) -> Univ (α ⊔₀ β)
-  udesc  : ∀ {o i} -> Type i -> Level o -> ∀ a -> {{α : Level a}} -> Type a
-  extend : ∀ {i o a b} {ω : Level o} {{β : Level b}} {I : Type i}
+  udesc  : ∀ {o i} -> Type i -> Level o -> ∀ a -> Type a
+  extend : ∀ {i o a b} {ω : Level o} {β : Level b} {I : Type i}
          -> UDesc I ω a -> (⟦ I ⟧ -> Univ β) -> ⟦ I ⟧ -> Univ β
-  imu    : ∀ {i a} {{α : Level a}} {I : Type i} -> Desc I α -> ⟦ I ⟧ -> Univ α
+  imu    : ∀ {i a} {α : Level a} {I : Type i} -> Desc I α -> ⟦ I ⟧ -> Univ α
 
 record μ {i a} {α : Level a} {I : Type i} (D : Desc I α) i : Set where
   inductive
@@ -121,7 +123,7 @@ _⇒_ : ∀ {a b} {α : Level a} {β : Level b} -> Univ α -> Univ β -> Univ (�
 A ⇒ B = π A λ _ -> B
 
 desc : ∀ {a i} -> Type i -> Level a -> Type a
-desc I α = udesc I α _ {{α}}
+desc {a} I α = udesc I α a
 
 _≟ⁿ_ : ℕ -> ℕ -> Prop
 0     ≟ⁿ 0     = top
@@ -168,7 +170,7 @@ imu D₁ i₁          ≃ imu D₂ i₂          = D₁ ≊ᵈ D₂ & i₁ ≅ 
 _                  ≃ _                  = bot
 
 _≅e_ : ∀ {i₁ i₂ o₁ o₂ a₁ a₂ b₁ b₂}
-         {ω₁ : Level o₁} {ω₂ : Level o₂} {{β₁ : Level b₁}} {{β₂ : Level b₂}}
+         {ω₁ : Level o₁} {ω₂ : Level o₂} {β₁ : Level b₁} {β₂ : Level b₂}
          {I₁ : Type i₁} {I₂ : Type i₂} {F₁ : ⟦ I₁ ⟧ -> Univ β₁} {F₂ : ⟦ I₂ ⟧ -> Univ β₂} {j₁ j₂}
      -> (∃ λ (D₁ : UDesc I₁ ω₁ a₁) -> Extend D₁ (λ x₁ -> ⟦ F₁ x₁ ⟧) j₁)
      -> (∃ λ (D₂ : UDesc I₂ ω₂ a₂) -> Extend D₂ (λ x₂ -> ⟦ F₂ x₂ ⟧) j₂)
@@ -188,7 +190,7 @@ _≅_ {A = imu D₁ _     } {imu D₂ _     } a₁ a₂ = let node e₁ = a₁; 
 _≅_                                     _  _  = bot
 
 _≅s_ : ∀ {i₁ i₂ o₁ o₂ a₁ a₂ b₁ b₂}
-         {ω₁ : Level o₁} {ω₂ : Level o₂} {{β₁ : Level b₁}} {{β₂ : Level b₂}}
+         {ω₁ : Level o₁} {ω₂ : Level o₂} {β₁ : Level b₁} {β₂ : Level b₂}
          {I₁ : Type i₁} {I₂ : Type i₂} {F₁ : ⟦ I₁ ⟧ -> Univ β₁} {F₂ : ⟦ I₂ ⟧ -> Univ β₂}
      -> (∃ λ (D₁ : UDesc I₁ ω₁ a₁) -> ⟦ D₁ ⟧ᵈ λ x₁ -> ⟦ F₁ x₁ ⟧)
      -> (∃ λ (D₂ : UDesc I₂ ω₂ a₂) -> ⟦ D₂ ⟧ᵈ λ x₂ -> ⟦ F₂ x₂ ⟧)
@@ -217,9 +219,6 @@ module _ {i o} {ω : Level o} {I : Type i} where
   _⇒ᵈ_ : ∀ {a} {α : Level a}
        -> (A : Univ α) -> UDesc I ω (a ⊔ₘ o) -> UDesc I ω (a ⊔ₘ o)
   A ⇒ᵈ D = πᵈ A λ _ -> D
-
-meta-inj : ∀ {a b} -> meta a ≡ meta b -> a ≡ b
-meta-inj prefl = prefl
 
 pattern #₀ p = node (tag  nothing                                   , p)
 pattern #₁ p = node (tag (just nothing)                             , p)

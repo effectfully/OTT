@@ -160,14 +160,14 @@ mutual
     π[ ptrans (pright (pcong (a ⊔ₘ_) qo) q) qa ] A (coerceUDesc qI qo qa ∘ D)
   coerceUDesc qI qo qa (D ⊛ E)          = coerceUDesc qI qo qa D ⊛ coerceUDesc qI qo qa E
   
-  coerceSem : ∀ {i₁ i₂ o₁ o₂ a₁ a₂ b₁ b₂} {ω₁ : Level o₁} {ω₂ : Level o₂}
-                {{β₁ : Level b₁}} {{β₂ : Level b₂}}
+  coerceSem : ∀ {i₁ i₂ o₁ o₂ a₁ a₂ b₁ b₂}
+                {ω₁ : Level o₁} {ω₂ : Level o₂} {β₁ : Level b₁} {β₂ : Level b₂}
                 {I₁ : Type i₁} {I₂ : Type i₂}
                 {F₁ : ⟦ I₁ ⟧ -> Univ β₁} {F₂ : ⟦ I₂ ⟧ -> Univ β₂}
             -> (D₁ : UDesc I₁ ω₁ a₁)
             -> (D₂ : UDesc I₂ ω₂ a₂)
             -> ⟦ D₁ ≅ᵈ D₂ ⟧
-            -> ⟦ F₁ ≅  F₂ ⟧
+            -> ⟦ F₁ ≅ F₂ ⟧
             -> (⟦ D₁ ⟧ᵈ λ x₁ -> ⟦ F₁ x₁ ⟧)
             -> (⟦ D₂ ⟧ᵈ λ x₂ -> ⟦ F₂ x₂ ⟧)
   coerceSem (var′ j₁)  (var′ j₂)   qj       qF  x      = coerce (qF j₁ j₂ qj) x
@@ -184,8 +184,8 @@ mutual
   coerceSem (_ ⊛ _ ) (var′ _) ()
   coerceSem (_ ⊛ _ ) (π′ _ _) ()
 
-  coerceExtend : ∀ {i₁ i₂ o₁ o₂ a₁ a₂ b₁ b₂} {ω₁ : Level o₁} {ω₂ : Level o₂}
-                   {{β₁ : Level b₁}} {{β₂ : Level b₂}}
+  coerceExtend : ∀ {i₁ i₂ o₁ o₂ a₁ a₂ b₁ b₂}
+                   {ω₁ : Level o₁} {ω₂ : Level o₂} {β₁ : Level b₁} {β₂ : Level b₂}
                    {I₁ : Type i₁} {I₂ : Type i₂}
                    {F₁ : ⟦ I₁ ⟧ -> Univ β₁} {F₂ : ⟦ I₂ ⟧ -> Univ β₂} {j₁ j₂}
                -> (D₁ : UDesc I₁ ω₁ a₁)
@@ -209,11 +209,11 @@ mutual
 
   coerceMu : ∀ {i₁ i₂ a₁ a₂} {α₁ : Level a₁} {α₂ : Level a₂}
                {I₁ : Type i₁} {I₂ : Type i₂} {D₁ : Desc I₁ α₁} {D₂ : Desc I₂ α₂} {j₁ j₂}
-           -> ⟦ D₁ ≊ᵈ D₂ ⟧ -> ⟦ j₁ ≅ j₂ ⟧ -> μ D₁ j₁ -> μ D₂ j₂
+           -> ⟦ D₁ ≊ᵈ D₂ ⟧ -> ⟦ j₁ ≅ j₂ ⟧ -> μ D₁ j₁ -> μ D₂ j₂     
   coerceMu {α₁ = lzero } {lzero }                qD qj (node e) =
     node (unwrap (proj₁ (qD _ _ qj) (wrap e)))
   coerceMu {α₁ = lsuc _} {lsuc _} {D₁ = D₁} {D₂} qD qj (node e) =
-    node (coerceExtend {{lsuc _}} {{lsuc _}} D₁ D₂ qD (λ _ _ -> _,_ qD) qj e)
+    node (coerceExtend D₁ D₂ qD (λ _ _ -> _,_ qD) qj e)
   coerceMu {α₁ = lzero } {lsuc _} ()
   coerceMu {α₁ = lsuc _} {lzero } ()
 

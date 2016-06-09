@@ -30,13 +30,13 @@ foldList f = elimList _ f
 length : ∀ {a} {A : Type a} -> List A -> ℕ
 length = foldList (const suc) 0
 
-icmu : ∀ {i} {{a}} {I : Type i} -> List (desc I (lsuc a)) -> ⟦ I ⟧ -> Type a
+icmu : ∀ {i a} {I : Type i} -> List (desc I (lsuc a)) -> ⟦ I ⟧ -> Type a
 icmu {I = I} Ds = imu $ πᵈ (enum (length Ds)) (go Ds ∘ detag) where
-  go : ∀ {a} -> (Ds : List (desc I (lsuc a))) -> Enum (length Ds) -> Desc I (lsuc a)
+  go : ∀ {a} {A : Type a} -> (xs : List A) -> Enum (length xs) -> ⟦ A ⟧
   go  []           ()
-  go (D ∷ [])      tt      = D
-  go (D ∷ E ∷ Ds)  nothing = D
-  go (D ∷ E ∷ Ds) (just e) = go (E ∷ Ds) e
+  go (x ∷ [])      tt      = x
+  go (x ∷ y ∷ xs)  nothing = x
+  go (x ∷ y ∷ xs) (just e) = go (y ∷ xs) e
 
 cmu : ∀ {a} -> List (desc unit (lsuc a)) -> Type a
 cmu Ds = icmu Ds triv

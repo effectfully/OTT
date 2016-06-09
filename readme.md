@@ -75,6 +75,7 @@ var i₁    ≅ᵈ var i₂    = i₁ ≅ i₂
 π A₁ D₁   ≅ᵈ π A₂ D₂   = A₁ ≈ A₂ & π A₁ λ x₁ -> π A₂ λ x₂ -> x₁ ≅ x₂ ⇒ D₁ x₁ ≅ᵈ D₂ x₂
 (D₁ ⊛ E₁) ≅ᵈ (D₂ ⊛ E₂) = D₁ ≅ᵈ D₂ & E₁ ≅ᵈ E₂
 _         ≅ᵈ _         = bot
+```
 
 Described propositions are equal if their fixed points (propositions themselves) are isomorphic:
 

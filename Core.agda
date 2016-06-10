@@ -167,17 +167,17 @@ _≅e_ : ∀ {i₁ i₂ a₁ a₂ b₁ b₂} {α₁ : Level a₁} {α₂ : Level
      -> (∃ λ (D₂ : Desc I₂ α₂) -> Extend D₂ (λ x₂ -> ⟦ F₂ x₂ ⟧) j₂)
      -> Prop
 
-_≅_ {A = bot      } {bot      } _  _  = top
-_≅_ {A = top      } {top      } _  _  = top
-_≅_ {A = α₁ ≡ˢˡ β₁} {α₂ ≡ˢˡ β₂} _  _  = top
-_≅_ {A = nat      } {nat      } n₁ n₂ = n₁ ≟ⁿ n₂
-_≅_ {A = enum n₁  } {enum n₂  } e₁ e₂ = n₁ , detag e₁ ≅ᵉ n₂ , detag e₂
-_≅_ {A = univ α₁  } {univ α₂  } A₁ A₂ = A₁ ≈ A₂
-_≅_ {A = σ A₁ B₁  } {σ A₂ B₂  } p₁ p₂ = let x₁ , y₁ = p₁ ; x₂ , y₂ = p₂ in x₁ ≅ x₂ & y₁ ≅ y₂
-_≅_ {A = π A₁ B₁  } {π A₂ B₂  } f₁ f₂ = π A₁ λ x₁ -> π A₂ λ x₂ -> x₁ ≅ x₂ ⇒ f₁ x₁ ≅ f₂ x₂
-_≅_ {A = desc _ _ } {desc _ _ } D₁ D₂ = D₁ ≅ᵈ D₂
-_≅_ {A = imu D₁ _ } {imu D₂ _ } d₁ d₂ = let node e₁ = d₁; node e₂ = d₂ in D₁ , e₁ ≅e D₂ , e₂
-_≅_                             _  _  = bot
+_≅_ {A = bot     } {bot     } _  _  = top
+_≅_ {A = top     } {top     } _  _  = top
+_≅_ {A = _ ≡ˢˡ _ } {_ ≡ˢˡ _ } _  _  = top
+_≅_ {A = nat     } {nat     } n₁ n₂ = n₁ ≟ⁿ n₂
+_≅_ {A = enum n₁ } {enum n₂ } e₁ e₂ = n₁ , detag e₁ ≅ᵉ n₂ , detag e₂
+_≅_ {A = univ α₁ } {univ α₂ } A₁ A₂ = A₁ ≈ A₂
+_≅_ {A = σ A₁ B₁ } {σ A₂ B₂ } p₁ p₂ = let x₁ , y₁ = p₁ ; x₂ , y₂ = p₂ in x₁ ≅ x₂ & y₁ ≅ y₂
+_≅_ {A = π A₁ B₁ } {π A₂ B₂ } f₁ f₂ = π A₁ λ x₁ -> π A₂ λ x₂ -> x₁ ≅ x₂ ⇒ f₁ x₁ ≅ f₂ x₂
+_≅_ {A = desc _ _} {desc _ _} D₁ D₂ = D₁ ≅ᵈ D₂
+_≅_ {A = imu D₁ _} {imu D₂ _} d₁ d₂ = let node e₁ = d₁; node e₂ = d₂ in D₁ , e₁ ≅e D₂ , e₂
+_≅_                           _  _  = bot
 
 _≅s_ : ∀ {i₁ i₂ a₁ a₂ b₁ b₂} {α₁ : Level a₁} {α₂ : Level a₂} {β₁ : Level b₁} {β₂ : Level b₂}
          {I₁ : Type i₁} {I₂ : Type i₂} {F₁ : ⟦ I₁ ⟧ -> Univ β₁} {F₂ : ⟦ I₂ ⟧ -> Univ β₂}

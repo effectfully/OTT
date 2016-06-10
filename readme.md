@@ -64,7 +64,7 @@ top     ≃ top     = top
 
 Weak equality for propositions is isomorphism, weak equality for sets is strict equality.
 
-In the same way there are two equalities for descriptions, since a description can lie in `Prop` — this happens when the description contains only propositions and inductive occurrences.
+In the same way there are two equalities for descriptions, since a description can lie in `Prop` — this happens when a description contains only propositions and inductive occurrences.
 
 The straightforward strict equality:
 
@@ -110,7 +110,95 @@ coerce′ {A = π A₁ B₁ } {π A₂ B₂ } q f  = let q₁ , q₂ = q in
 ...
 ```
 
-...
+`desc` allows to encode inductive data types (including inductive families) in the target theory. `coerce` computes under constructors of data types (see the "5. Full OTT" section of [1] for how this works). Each inductive family has at least two eliminators: one classical and one "up to propositional equality". An example from the `OTT.Data.Fin` module:
+
+```
+elimFinₑ : ∀ {n π}
+         -> (P : ∀ {n} -> Fin n -> Set π)
+         -> (∀ {n m} {i : Fin n} -> (q : ⟦ suc n ≅ m ⟧) -> P i -> P {m} (fsucₑ q i))
+         -> (∀ {n m} -> (q : ⟦ suc n ≅ m ⟧) -> P {m} (fzeroₑ q))
+         -> (i : Fin n)
+         -> P i
+elimFinₑ P f x (fzeroₑ q)  = x q
+elimFinₑ P f x (fsucₑ q i) = f q (elimFinₑ P f x i)
+```
+
+`elimFinₑ` is an "up to propositional equality" eliminator. The thing here is that `elimFinₑ` doesn't contain any coercions at all, so its "non-dependent" computational behaviour is the same as the corresponding behaviour of an eliminator in an intensional type theory. It even gives you slightly more:
+
+```
+elimFin′ : ∀ {n π}
+         -> (P : ∀ n -> Set π)
+         -> (∀ {n} {i : Fin n} -> P (fromFin i) -> P (suc (fromFin i)))
+         -> P 0
+         -> (i : Fin n)
+         -> P (fromFin i)
+elimFin′ P f x = elimFinₑ (P ∘ fromFin) (λ {n m i} _ -> f {i = i}) (const x)
+```
+
+`elimFin′` doesn't mention `coerce` as well.
+
+We can recover the usual eliminator with the help from our old friend:
+
+```
+J : ∀ {a b} {α : Level a} {β : Level b} {A : Univ α} {x y : ⟦ A ⟧}
+  -> (B : (y : ⟦ A ⟧) -> ⟦ x ≅ y ⟧ -> Univ β)
+  -> ⟦ B _ (refl x) ⟧
+  -> (q : ⟦ x ≅ y ⟧)
+  -> ⟦ B _ q ⟧
+J {x = x} B z q = subst₂ B q (huip x q) z
+
+elimFin : ∀ {n k}
+        -> (P : ∀ {n} -> Fin n -> Univ k)
+        -> (∀ {n} {i : Fin n} -> ⟦ P i ⇒ P (fsuc i) ⟧)
+        -> (∀ {n} -> ⟦ P {suc n} fzero ⟧)
+        -> (i : Fin n)
+        -> ⟦ P i ⟧
+elimFin P f x = elimFinₑ (⟦_⟧ ∘ P)
+  (λ q r -> J (λ m q -> P {m} (fsucₑ q _)) (f r) q)
+  (J (λ m q -> P {m} (fzeroₑ q)) x)
+```
+
+`subst₂` is defined in terms of `coerce`, so it computes under constructors of data types too, hence classical eliminators have pretty good computational behaviour too.
+
+A simple test:
+
+```
+postulate
+  n m : ℕ
+
+test : ⟦ fromFin ((Fin (3 + n) ∋ fsuc (fsuc fzero)) +ᶠ (Fin (2 + m) ∋ fsuc fzero)) ≅ 3 ⟧
+test = tt
+```
+
+`n` and `m` are stuck, but the expression reduces properly regardless of whether `_+ᶠ_` is defined in terms of `elimFin′` or `elimFin`.
+
+Eliminators for inductive data types (not families) are the usual intensional eliminators, e.g.
+
+```
+[_,_] : ∀ {a b π} {α : Level a} {β : Level b} {A : Univ α} {B : Univ β} {P : A ⊎ B -> Set π}
+      -> (∀ x -> P (inj₁ x)) -> (∀ y -> P (inj₂ y)) -> ∀ s -> P s
+[ f , g ] (inj₁ x) = f x
+[ f , g ] (inj₂ y) = g y
+
+elimW : ∀ {a b π} {α : Level a} {β : Level b} {A : Univ α} {B : ⟦ A ⟧ -> Univ β}
+      -> (P : W A B -> Set π)
+      -> (∀ {x} {g : ⟦ B x ⟧ -> W A B} -> (∀ y -> P (g y)) -> P (sup x g))
+      -> ∀ w
+      -> P w
+elimW P h (sup x g) = h (λ y -> elimW P h (g y))
+```
+
+There is [an alternative encoding](https://github.com/effectfully/random-stuff/blob/master/IRDesc.agda) in terms of proper propositional descriptions (see [6]), which is a slightly modified version of [7]. It's more standard, more powerful (it's able to express induction-recursion), but also significantly more complicated: data types must be defined mutually with coercions (or maybe we can to use a parametrised module like in the model, but it still doesn't look nice), which results in a giant mutual block. I didn't try to define equality and coercions for descriptions, but I suspect it's much harder than how it's now. I'll go with the current simple approach.
+
+## Not implemented
+
+- Definitional proof irrelevance.
+
+- Erasion of stuck coercions between definitionally equal types (that's not my fault, Agda just doesn't have an available definitional equality checker) (note that we have proper eliminators without this tool unlike in OTT with W-types (and they are still improper, see [4])).
+
+- Codata (is it simply the coinductive counterpart of `μ`?).
+
+- Quotients. Or maybe we can implement even quotient inductive types ([10])?
 
 ## References
 
@@ -131,3 +219,5 @@ coerce′ {A = π A₁ B₁ } {π A₂ B₂ } q f  = let q₁ , q₂ = q in
 [8] ["The Gengtle Art of Levitation"](https://jmchapman.github.io/papers/levitation.pdf), James Chapman, Pierre-Évariste Dagand, Conor McBride, Peter Morris
 
 [9] ["Descriptions"](http://effectfully.blogspot.ru/2016/04/descriptions.html)
+
+[10] [Type Theory in Type Theory using Quotient Inductive Types](http://www.cs.nott.ac.uk/~psztxa/publ/tt-in-tt.pdf), Thorsten Altenkirch, Ambrus Kaposi.

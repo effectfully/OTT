@@ -18,7 +18,7 @@ The form of descriptions used here is described at the bottom (the `CompProp` mo
 
 `π : ∀ {α} -> α ≤ β -> (A : Univ α) -> (⟦ A ⟧ -> Desc I β) -> Desc I β`
 
-If levels would be just natural numbers that would work, however forcing a user to write down such boring and verbose proofs (though, we could probably use a solver with some reflection) would be too obtrusive. But `α ≤ β` can be equally written as `α ⊔ β ≡ β` and Agda has a built-in solver for universe levels, so here is the definition of `Desc`:
+If levels would be just natural numbers, that would work, however forcing a user to write down such boring and verbose proofs (though, we could probably use a solver with some reflection) would be too obtrusive. But `α ≤ β` can be equally written as `α ⊔ β ≡ β` and Agda has a built-in solver for universe levels, so here is the definition of `Desc`:
 
 ```
 data Desc {i b} (I : Type i) (β : Level b) : Set where
@@ -200,6 +200,22 @@ There is [an alternative encoding](https://github.com/effectfully/random-stuff/b
 
 - Quotients. Or maybe we can implement even quotient inductive types ([10])?
 
+## A final remark
+
+Note that it's a library and not a formalization, since termination and positivity checkers are disabled. There are also several postulates (as well as in original OTT), but nothing unexpected:
+
+```
+postulate
+  refl      : ∀ {a} {α : Level a} {A : Univ α} -> (x : ⟦ A ⟧) -> ⟦ x ≅ x ⟧
+  coherence : ∀ {a b} {α : Level a} {β : Level b} {A : Univ α} {B : Univ β}
+            -> (q : ⟦ A ≈ B ⟧) -> (x : ⟦ A ⟧) -> ⟦ x ≅ coerce q x ⟧
+  cong-≅z   : ∀ {a b c} {α : Level a} {β : Level b} {γ : Level c}
+                {A : Univ α} {B : Univ β} {C : Univ γ}
+            -> (x : ⟦ A ⟧) {y : ⟦ B ⟧} {z : ⟦ C ⟧} -> (q : ⟦ x ≅ y ⟧) -> ⟦ (x ≅ z) ≈ (y ≅ z)⟧
+  huip      : ∀ {a b} {α : Level a} {β : Level b} {A : Univ α} {B : Univ β}
+            -> (x : ⟦ A ⟧) {y : ⟦ B ⟧} -> (q : ⟦ x ≅ y ⟧) -> ⟦ refl x ≅ q ⟧
+```
+
 ## References
 
 [1] ["Towards Observational Type Theory"](http://strictlypositive.org/ott.pdf), Thorsten Altenkirch and Conor McBride
@@ -220,4 +236,4 @@ There is [an alternative encoding](https://github.com/effectfully/random-stuff/b
 
 [9] ["Descriptions"](http://effectfully.blogspot.ru/2016/04/descriptions.html)
 
-[10] [Type Theory in Type Theory using Quotient Inductive Types](http://www.cs.nott.ac.uk/~psztxa/publ/tt-in-tt.pdf), Thorsten Altenkirch, Ambrus Kaposi.
+[10] ["Type Theory in Type Theory using Quotient Inductive Types"](http://www.cs.nott.ac.uk/~psztxa/publ/tt-in-tt.pdf), Thorsten Altenkirch, Ambrus Kaposi.

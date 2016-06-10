@@ -1,6 +1,7 @@
 module OTT.Prelude where
 
-open import Level renaming (Level to MetaLevel; zero to lzeroₘ; suc to lsucₘ; _⊔_ to _⊔ₘ_) public
+open import Level
+  renaming (Level to MetaLevel; zero to lzeroₘ; suc to lsucₘ; _⊔_ to _⊔ₘ_) using () public
 open import Function public
 open import Relation.Binary.PropositionalEquality
   renaming (refl to prefl; trans to ptrans; cong to pcong) using (_≡_) public

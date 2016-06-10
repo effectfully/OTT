@@ -41,7 +41,7 @@ Desc : ∀ {a i} -> Type i -> Level a -> Set
 Desc {a} I α = UDesc I α a
 ```
 
-Here `ω` is the final level and `a` is the inferred level`. `Desc` requires these levels to be equal, thereby forcing unification. However this is more complicated and verbose, so I chose the first version.
+Here `ω` is the final level and `a` is the inferred level. `Desc` requires these levels to be equal, thereby forcing unification. However this is more complicated and verbose, so I chose the first version.
 
 We have two notions of type equality: types can be equal either weakly
 
@@ -202,7 +202,7 @@ There is [an alternative encoding](https://github.com/effectfully/random-stuff/b
 
 ## A final remark
 
-Note that it's a library and not a formalization, since termination and positivity checkers are disabled. There are also several postulates (as well as in original OTT), but nothing unexpected:
+Note that it's a library and not a formalization, since termination and positivity checkers are disabled. There are also several postulates (as well as in the original OTT), but nothing unexpected:
 
 ```
 postulate

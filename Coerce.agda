@@ -145,8 +145,8 @@ mutual
             -> (D₂ : Desc I₂ α₂)
             -> ⟦ D₁ ≅ᵈ D₂ ⟧
             -> ⟦ F₁ ≅ F₂ ⟧
-            -> (⟦ D₁ ⟧ᵈ λ x₁ -> ⟦ F₁ x₁ ⟧)
-            -> (⟦ D₂ ⟧ᵈ λ x₂ -> ⟦ F₂ x₂ ⟧)
+            -> (⟦ D₁ ⟧ᵈ ⟦ F₁ ⟧ᵒ)
+            -> (⟦ D₂ ⟧ᵈ ⟦ F₂ ⟧ᵒ)
   coerceSem (var j₁)  (var j₂)   qj       qF  x      = coerce (qF j₁ j₂ qj) x
   coerceSem (π A₁ D₁) (π A₂ D₂) (qA , qD) qF  f      = λ x ->
     let qA′ = sym A₁ {A₂} qA
@@ -170,8 +170,8 @@ mutual
                -> ⟦ D₁ ≅ᵈ D₂ ⟧
                -> ⟦ F₁ ≅ F₂ ⟧
                -> ⟦ j₁ ≅ j₂ ⟧
-               -> Extend D₁ (λ x₁ -> ⟦ F₁ x₁ ⟧) j₁
-               -> Extend D₂ (λ x₂ -> ⟦ F₂ x₂ ⟧) j₂
+               -> Extend D₁ ⟦ F₁ ⟧ᵒ j₁
+               -> Extend D₂ ⟦ F₂ ⟧ᵒ j₂
   coerceExtend (var j₁)  (var j₂)   qj       qF qi  qji    = trans j₂ (right j₁ qj qji) qi
   coerceExtend (π A₁ D₁) (π A₂ D₂) (qA , qD) qF qi (x , e) = let x′ = coerce qA x in
     x′ , coerceExtend (D₁ x) (D₂ x′) (qD x x′ (coherence qA x)) qF qi e

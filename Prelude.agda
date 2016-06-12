@@ -12,7 +12,7 @@ open import Data.Maybe.Base using (Maybe; nothing; just) public
 open import Data.Product hiding (,_) renaming (map to pmap) public
 
 open import OTT.Lib.HeteroIndexed public
-open import OTT.Lib.PartDec public
+open import OTT.Lib.Decidable public
 
 open import Relation.Nullary
 open import Relation.Binary

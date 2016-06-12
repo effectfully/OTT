@@ -34,11 +34,17 @@ module _ where
     go (suc (suc n))  nothing (x , xs) = x
     go (suc (suc n)) (just e) (x , xs) = go (suc n) e xs
 
+-- We could compare functions with a finite domain for equality.
 mutual
-  DescEq : ∀ {i a} {α : Level a} {I : Type i} -> Desc I α -> Set
-  DescEq (var i) = ⊤
-  DescEq (π A D) = Eq A × Pi A λ x -> DescEq (D x)
-  DescEq (D ⊛ E) = DescEq D × DescEq E
+  SemEq : ∀ {i a} {α : Level a} {I : Type i} -> Desc I α -> Set
+  SemEq (var i) = ⊤
+  SemEq (π A D) = ⊥
+  SemEq (D ⊛ E) = SemEq D × SemEq E
+
+  ExtendEq : ∀ {i a} {α : Level a} {I : Type i} -> Desc I α -> Set
+  ExtendEq (var i) = ⊤
+  ExtendEq (π A D) = Eq A × Pi A λ x -> ExtendEq (D x)
+  ExtendEq (D ⊛ E) = SemEq D × ExtendEq E
 
   Eq : ∀ {a} {α : Level a} -> Univ α -> Set
   Eq  bot       = ⊤
@@ -50,7 +56,7 @@ mutual
   Eq (σ A B)    = Eq A × Pi A λ x -> Eq (B x)
   Eq (π A B)    = ⊥
   Eq (desc I α) = Eq I
-  Eq (imu D j)  = DescEq D
+  Eq (imu D j)  = ExtendEq D
 
   -- Should there be a separate type class for `imu`?
   -- Is there any reason to bother with `desc`?
@@ -78,7 +84,7 @@ apply {A = imu _ _ } y x = y
 mutual
   _≟ᵈ_ : ∀ {i a} {α : Level a} {I : Type i} {{eqI : Eq I}} -> IsPartSet (Desc I α)
   var i₁    ≟ᵈ var i₂    = dcong var var-inj (i₁ ≟ i₂)
-  π A₁ D₁   ≟ᵈ π A₂ D₂   = none
+  π A₁ D₁   ≟ᵈ π A₂ D₂   = none -- The only undecidable part.
   (D₁ ⊛ E₁) ≟ᵈ (D₂ ⊛ E₂) = dcong₂ _⊛_ ⊛-inj (D₁ ≟ᵈ D₂) (E₁ ≟ᵈ E₂)
   var _     ≟ᵈ π _ _     = no λ()
   var _     ≟ᵈ (_ ⊛ _)   = no λ()
@@ -89,15 +95,15 @@ mutual
 
   decSem : ∀ {i a p} {α : Level a} {φ : Level p} {I : Type i}
              {F : ⟦ I ⟧ -> Univ φ} {{eqF : ∀ {i} -> Eq (F i)}}
-         -> (D : Desc I α) {{eqD : DescEq D}} -> IsPartSet (⟦ D ⟧ᵈ ⟦ F ⟧ᵒ)
+         -> (D : Desc I α) {{eqD : SemEq D}} -> IsPartSet (⟦ D ⟧ᵈ ⟦ F ⟧ᵒ)
   decSem (var i)                x₁        x₂       = x₁ ≟ x₂ 
-  decSem (π A D)                f₁        f₂       = none
+  decSem (π A D) {{()}}
   decSem (D ⊛ E) {{eqD , eqE}} (s₁ , t₁) (s₂ , t₂) =
     decSem D {{eqD}} s₁ s₂ <,>ᵈ decSem E {{eqE}} t₁ t₂
 
   decExtend : ∀ {i a p} {α : Level a} {φ : Level p} {I : Type i} {j}
                 {F : ⟦ I ⟧ -> Univ φ} {{eqF : ∀ {i} -> Eq (F i)}}
-            -> (D : Desc I α) {{eqD : DescEq D}} -> IsPartSet (Extend D ⟦ F ⟧ᵒ j)
+            -> (D : Desc I α) {{eqD : ExtendEq D}} -> IsPartSet (Extend D ⟦ F ⟧ᵒ j)
   decExtend (var i)                q₁        q₂       = yes contr
   decExtend (π A D) {{eqA , eqD}} (x₁ , e₁) (x₂ , e₂) =
     _≟_ {{eqA}} x₁ x₂ <,>ᵈᵒ decExtend (D x₁) {{apply eqD x₁}} e₁
@@ -124,14 +130,14 @@ private
     open import OTT.Data.Sum
     open import OTT.Data.List
 
-    ns₁ : List (nat ⊕ σ nat fin)
-    ns₁ = inj₁ 1 ∷ inj₂ (3 , fsuc fzero) ∷ inj₂ (1 , fzero) ∷ []
+    ns₁ : List (list nat ⊕ σ nat fin)
+    ns₁ = inj₁ (1 ∷ 4 ∷ []) ∷ inj₂ (3 , fsuc fzero) ∷ inj₂ (2 , fzero) ∷ []
 
-    ns₂ : List (nat ⊕ σ nat fin)
-    ns₂ = inj₁ 1 ∷ inj₂ (2 , fsuc fzero) ∷ inj₂ (1 , fzero) ∷ []
+    ns₂ : List (list nat ⊕ σ nat fin)
+    ns₂ = inj₁ (1 ∷ 4 ∷ []) ∷ inj₂ (2 , fsuc fzero) ∷ inj₂ (2 , fzero) ∷ []
 
-    ns₃ : List (nat ⊕ σ nat fin)
-    ns₃ = inj₁ 1 ∷ inj₂ (3 , fsuc fzero) ∷ []
+    ns₃ : List (list nat ⊕ σ nat fin)
+    ns₃ = inj₁ (1 ∷ 4 ∷ []) ∷ inj₂ (3 , fsuc fzero) ∷ []
 
     test₁ : (ns₁ ≟ ns₁) ≡ yes prefl
     test₁ = prefl

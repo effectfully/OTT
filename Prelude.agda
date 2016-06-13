@@ -11,7 +11,7 @@ open import Data.Nat.Base hiding (_⊔_; _≟_) public
 open import Data.Maybe.Base using (Maybe; nothing; just) public
 open import Data.Product hiding (,_) renaming (map to pmap) public
 
-open import OTT.Lib.HeteroIndexed public
+open import OTT.Lib.Heteroindexed public
 open import OTT.Lib.Decidable public
 
 open import Relation.Nullary
@@ -72,9 +72,9 @@ module _ {α} {A : Set α} where
     open DecSetoid (decSetoid (P.decSetoid D))
 
 Enum : ℕ -> Set
-Enum  0            = ⊥
-Enum  1            = ⊤
-Enum (suc (suc n)) = Maybe (Enum (suc n))
+Enum  0      = ⊥
+Enum  1      = ⊤
+Enum (suc n) = Maybe (Enum n)
 
 decEnum : ∀ n -> Decidable (_≡_ {A = Enum n})
 decEnum  0            () ()

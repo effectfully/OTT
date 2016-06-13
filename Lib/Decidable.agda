@@ -9,7 +9,7 @@ open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality
 open import Data.Product
 
-open import OTT.Lib.HeteroIndexed
+open import OTT.Lib.Heteroindexed
 
 infixl 10 _%
 infix  3  _#_

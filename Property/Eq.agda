@@ -36,12 +36,21 @@ module _ where
 
 -- We could compare functions with a finite domain for equality,
 -- but then equality can't be `_≡_`.
-mutual
-  SemEq : ∀ {i a} {α : Level a} {I : Type i} -> Desc I α -> Set
-  SemEq (var i) = ⊤
-  SemEq (π A D) = ⊥
-  SemEq (D ⊛ E) = SemEq D × SemEq E
+SemEq : ∀ {i a} {α : Level a} {I : Type i} -> Desc I α -> Set
+SemEq (var i) = ⊤
+SemEq (π A D) = ⊥
+SemEq (D ⊛ E) = SemEq D × SemEq E
 
+-- Should there be a separate type class for `imu`?
+-- Is there any reason to bother with `desc`?
+Pi : ∀ {a} {α : Level a} -> (A : Univ α) -> (⟦ A ⟧ -> Set) -> Set
+Pi  bot     F = ⊤
+Pi  top     F = F tt
+Pi (enum n) F = Tabulate F
+Pi (σ A B)  F = Pi A λ x -> Pi (B x) λ y -> F (x , y)
+Pi  _       F = ∀ {x} -> F x
+
+mutual
   ExtendEq : ∀ {i a} {α : Level a} {I : Type i} -> Desc I α -> Set
   ExtendEq (var i) = ⊤
   ExtendEq (π A D) = Eq A × Pi A λ x -> ExtendEq (D x)
@@ -56,15 +65,6 @@ mutual
   Eq (imu D j)  = ExtendEq D
   Eq  _         = ⊥
 
-  -- Should there be a separate type class for `imu`?
-  -- Is there any reason to bother with `desc`?
-  Pi : ∀ {a} {α : Level a} -> (A : Univ α) -> (⟦ A ⟧ -> Set) -> Set
-  Pi  bot     F = ⊤
-  Pi  top     F = F tt
-  Pi (enum n) F = Tabulate F
-  Pi (σ A B)  F = Pi A λ x -> Pi (B x) λ y -> F (x , y)
-  Pi  _       F = ∀ {x} -> F x
-
 -- Begs for a view, but I don't want to mess with instance arguments.
 apply : ∀ {a} {α : Level a} {A : Univ α} {F : ⟦ A ⟧ -> Set} -> Pi A F -> (x : ⟦ A ⟧) -> F x
 apply {A = bot   } f   ()
@@ -78,24 +78,25 @@ apply {A = π _ _   } y x = y
 apply {A = desc _ _} y x = y
 apply {A = imu _ _ } y x = y
 
-{-# TERMINATING #-}
 mutual
-  decSem : ∀ {i a p} {α : Level a} {φ : Level p} {I : Type i}
-             {F : ⟦ I ⟧ -> Univ φ} {{eqF : ∀ {i} -> Eq (F i)}}
-         -> (D : Desc I α) {{eqD : SemEq D}} -> IsSet (⟦ D ⟧ᵈ ⟦ F ⟧ᵒ)
-  decSem (var i)                x₁        x₂       = x₁ ≟ x₂ 
+  decSem : ∀ {i a} {α : Level a} {I : Type i} {D₀ : Desc I α} {{eqD₀ : ExtendEq D₀}}
+         -> (D : Desc I α) {{eqD : SemEq D}} -> IsSet (⟦ D ⟧ᵈ (μ D₀))
+  decSem (var i)                d₁        d₂       = decMu d₁ d₂
   decSem (π A D) {{()}}
   decSem (D ⊛ E) {{eqD , eqE}} (s₁ , t₁) (s₂ , t₂) =
     decSem D {{eqD}} s₁ s₂ <,>ᵈ decSem E {{eqE}} t₁ t₂
 
-  decExtend : ∀ {i a p} {α : Level a} {φ : Level p} {I : Type i} {j}
-                {F : ⟦ I ⟧ -> Univ φ} {{eqF : ∀ {i} -> Eq (F i)}}
-            -> (D : Desc I α) {{eqD : ExtendEq D}} -> IsSet (Extend D ⟦ F ⟧ᵒ j)
+  decExtend : ∀ {i a} {α : Level a} {I : Type i} {j} {D₀ : Desc I α} {{eqD₀ : ExtendEq D₀}}
+            -> (D : Desc I α) {{eqD : ExtendEq D}} -> IsSet (Extend D (μ D₀) j)
   decExtend (var i)                q₁        q₂       = yes contr
   decExtend (π A D) {{eqA , eqD}} (x₁ , e₁) (x₂ , e₂) =
     _≟_ {{eqA}} x₁ x₂ <,>ᵈᵒ decExtend (D x₁) {{apply eqD x₁}} e₁
   decExtend (D ⊛ E) {{eqD , eqE}} (s₁ , e₁) (s₂ , e₂) =
     decSem D {{eqD}} s₁ s₂ <,>ᵈ decExtend E {{eqE}} e₁ e₂
+
+  decMu : ∀ {i a} {α : Level a} {I : Type i} {D : Desc I α} {j} {{eqD : ExtendEq D}}
+        -> IsSet (μ D j)
+  decMu {D = D} (node e₁) (node e₂) = dcong node node-inj (decExtend D e₁ e₂)
 
   _≟_ : ∀ {a} {α : Level a} {A : Univ α} {{eqA : Eq A}} -> IsSet ⟦ A ⟧
   _≟_ {A = bot     }                ()        ()
@@ -108,7 +109,7 @@ mutual
     _≟_ {{eqA}} x₁ x₂ <,>ᵈᵒ _≟_ {{apply eqB x₁}} y₁
   _≟_ {A = π A B   } {{()}}
   _≟_ {A = desc I α} {{()}}
-  _≟_ {A = imu D j }               (node e₁) (node e₂) = dcong node node-inj (decExtend D e₁ e₂)
+  _≟_ {A = imu D j }                d₁        d₂       = decMu d₁ d₂
 
 private
   module Test where

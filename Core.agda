@@ -71,10 +71,20 @@ Extend (var j) F i = ⟦ j ≅ i ⟧
 Extend (π A D) F i = ∃ λ x -> Extend (D x) F i
 Extend (D ⊛ E) F i = ⟦ D ⟧ᵈ F × Extend E F i
 
-record μ {i a} {α : Level a} {I : Type i} (D : Desc I α) j : Set where
-  inductive
-  constructor node
-  field knot : Extend D (μ D) j
+-- Funnily, Agda treats inductive records and data types differently wrt termination checking.
+-- Perhaps it's not clear to Agda that induction is structural because
+-- irrefutable pattern matching elaborates into function application. Do we need refutable patterns?
+-- record μ {i a} {α : Level a} {I : Type i} (D : Desc I α) j : Set where
+--   inductive
+--   constructor node
+--   field knot : Extend D (μ D) j
+-- open μ public
+
+data μ {i a} {α : Level a} {I : Type i} (D : Desc I α) j : Set where
+  node : Extend D (μ D) j -> μ D j
+
+knot : ∀ {i a} {α : Level a} {I : Type i} {D : Desc I α} {j} -> μ D j -> Extend D (μ D) j
+knot (node e) = e
 
 data Univ where
   bot   : Prop
@@ -173,7 +183,7 @@ _≅_ {A = univ α₁ } {univ α₂ } A₁ A₂ = A₁ ≈ A₂
 _≅_ {A = σ A₁ B₁ } {σ A₂ B₂ } p₁ p₂ = let x₁ , y₁ = p₁ ; x₂ , y₂ = p₂ in x₁ ≅ x₂ & y₁ ≅ y₂
 _≅_ {A = π A₁ B₁ } {π A₂ B₂ } f₁ f₂ = π A₁ λ x₁ -> π A₂ λ x₂ -> x₁ ≅ x₂ ⇒ f₁ x₁ ≅ f₂ x₂
 _≅_ {A = desc _ _} {desc _ _} D₁ D₂ = D₁ ≅ᵈ D₂
-_≅_ {A = imu D₁ _} {imu D₂ _} d₁ d₂ = let node e₁ = d₁; node e₂ = d₂ in D₁ , e₁ ≅e D₂ , e₂
+_≅_ {A = imu D₁ _} {imu D₂ _} d₁ d₂ = D₁ , knot d₁ ≅e D₂ , knot d₂
 _≅_                           _  _  = bot
 
 _≅s_ : ∀ {i₁ i₂ a₁ a₂ b₁ b₂} {α₁ : Level a₁} {α₂ : Level a₂} {β₁ : Level b₁} {β₂ : Level b₂}

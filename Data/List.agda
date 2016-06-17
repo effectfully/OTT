@@ -1,6 +1,5 @@
 module OTT.Data.List where
 
-open import OTT.Prelude
 open import OTT.Core
 open import OTT.Coerce
 

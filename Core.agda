@@ -2,7 +2,7 @@
 
 module OTT.Core where
 
-open import OTT.Prelude
+open import OTT.Prelude public
 
 infixr 1 _&_
 infixr 2 _⇒_ _⇨_ _⊛_
@@ -62,14 +62,14 @@ _⇨_ : ∀ {i a b} {α : Level a} {β : Level b} {I : Type i} .{{_ : a ⊔ₘ b
 A ⇨ D = π A λ _ -> D
 
 ⟦_⟧ᵈ : ∀ {i a} {α : Level a} {I : Type i} -> Desc I α -> (⟦ I ⟧ -> Set) -> Set
-⟦ var i ⟧ᵈ F = F i
-⟦ π A D ⟧ᵈ F = ∀ x -> ⟦ D x ⟧ᵈ F
-⟦ D ⊛ E ⟧ᵈ F = ⟦ D ⟧ᵈ F × ⟦ E ⟧ᵈ F
+⟦ var i ⟧ᵈ B = B i
+⟦ π A D ⟧ᵈ B = ∀ x -> ⟦ D x ⟧ᵈ B
+⟦ D ⊛ E ⟧ᵈ B = ⟦ D ⟧ᵈ B × ⟦ E ⟧ᵈ B
 
 Extend : ∀ {i a} {α : Level a} {I : Type i} -> Desc I α -> (⟦ I ⟧ -> Set) -> ⟦ I ⟧ -> Set
-Extend (var j) F i = ⟦ j ≅ i ⟧
-Extend (π A D) F i = ∃ λ x -> Extend (D x) F i
-Extend (D ⊛ E) F i = ⟦ D ⟧ᵈ F × Extend E F i
+Extend (var j) B i = ⟦ j ≅ i ⟧
+Extend (π A D) B i = ∃ λ x -> Extend (D x) B i
+Extend (D ⊛ E) B i = ⟦ D ⟧ᵈ B × Extend E B i
 
 -- Funnily, Agda treats inductive records and data types differently wrt termination checking.
 -- Perhaps it's not clear to Agda that induction is structural because
@@ -102,7 +102,7 @@ data Univ where
 
 ⟦_⟧ᵒ : ∀ {a b} {α : Level a} {β : Level b} {A : Univ α}
      -> (⟦ A ⟧ -> Univ β) -> ⟦ A ⟧ -> Set
-⟦ F ⟧ᵒ x = ⟦ F x ⟧
+⟦ B ⟧ᵒ x = ⟦ B x ⟧
 
 ⟦ bot          ⟧ = ⊥
 ⟦ top          ⟧ = ⊤
@@ -169,9 +169,9 @@ imu D₁ j₁      ≃ imu D₂ j₂      = D₁ ≊ᵈ D₂ & j₁ ≅ j₂
 _              ≃ _              = bot
 
 _≅e_ : ∀ {i₁ i₂ a₁ a₂ b₁ b₂} {α₁ : Level a₁} {α₂ : Level a₂} {β₁ : Level b₁} {β₂ : Level b₂}
-         {I₁ : Type i₁} {I₂ : Type i₂} {F₁ : ⟦ I₁ ⟧ -> Univ β₁} {F₂ : ⟦ I₂ ⟧ -> Univ β₂} {j₁ j₂}
-     -> (∃ λ (D₁ : Desc I₁ α₁) -> Extend D₁ ⟦ F₁ ⟧ᵒ j₁)
-     -> (∃ λ (D₂ : Desc I₂ α₂) -> Extend D₂ ⟦ F₂ ⟧ᵒ j₂)
+         {I₁ : Type i₁} {I₂ : Type i₂} {B₁ : ⟦ I₁ ⟧ -> Univ β₁} {B₂ : ⟦ I₂ ⟧ -> Univ β₂} {j₁ j₂}
+     -> (∃ λ (D₁ : Desc I₁ α₁) -> Extend D₁ ⟦ B₁ ⟧ᵒ j₁)
+     -> (∃ λ (D₂ : Desc I₂ α₂) -> Extend D₂ ⟦ B₂ ⟧ᵒ j₂)
      -> Prop
 
 _≅_ {A = bot     } {bot     } _  _  = top
@@ -187,9 +187,9 @@ _≅_ {A = imu D₁ _} {imu D₂ _} d₁ d₂ = D₁ , knot d₁ ≅e D₂ , kno
 _≅_                           _  _  = bot
 
 _≅s_ : ∀ {i₁ i₂ a₁ a₂ b₁ b₂} {α₁ : Level a₁} {α₂ : Level a₂} {β₁ : Level b₁} {β₂ : Level b₂}
-         {I₁ : Type i₁} {I₂ : Type i₂} {F₁ : ⟦ I₁ ⟧ -> Univ β₁} {F₂ : ⟦ I₂ ⟧ -> Univ β₂}
-     -> (∃ λ (D₁ : Desc I₁ α₁) -> ⟦ D₁ ⟧ᵈ ⟦ F₁ ⟧ᵒ)
-     -> (∃ λ (D₂ : Desc I₂ α₂) -> ⟦ D₂ ⟧ᵈ ⟦ F₂ ⟧ᵒ)
+         {I₁ : Type i₁} {I₂ : Type i₂} {B₁ : ⟦ I₁ ⟧ -> Univ β₁} {B₂ : ⟦ I₂ ⟧ -> Univ β₂}
+     -> (∃ λ (D₁ : Desc I₁ α₁) -> ⟦ D₁ ⟧ᵈ ⟦ B₁ ⟧ᵒ)
+     -> (∃ λ (D₂ : Desc I₂ α₂) -> ⟦ D₂ ⟧ᵈ ⟦ B₂ ⟧ᵒ)
      -> Prop
 var i₁    , x₁      ≅s var i₂    , x₂      = x₁ ≅ x₂
 π A₁ D₁   , f₁      ≅s π A₂ D₂   , f₂      =

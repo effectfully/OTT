@@ -6,6 +6,7 @@ module OTT.Property.Eq where
 import Data.Nat.Base as Nat
 
 open import OTT.Main
+open import OTT.Function.Pi
 
 infix 4 _≟_
 
@@ -16,39 +17,12 @@ module _ where
   contr : {A : Prop} {x y : ⟦ A ⟧} -> x ≡ y
   contr = trustMe
 
-module _ where
-  open import Data.Maybe.Base
-
-  Tabulate : ∀ {n} -> (Apply Enum n -> Set) -> Set
-  Tabulate F = go _ (F ∘ tag) where
-    go : ∀ n -> (Enum n -> Set) -> Set
-    go  0            F = ⊤
-    go  1            F = F tt
-    go (suc (suc n)) F = F nothing × go (suc n) (F ∘ just)
-
-  lookup : ∀ {n} {F : Apply Enum n -> Set} -> (e : Apply Enum n) -> Tabulate F -> F e
-  lookup e xs = go _ (detag e) xs where
-    go : ∀ n {F : Enum n -> Set} -> (e : Enum n) -> Tabulate (F ∘ detag) -> F e
-    go  0             ()
-    go  1             tt       x       = x
-    go (suc (suc n))  nothing (x , xs) = x
-    go (suc (suc n)) (just e) (x , xs) = go (suc n) e xs
-
 -- We could compare functions with a finite domain for equality,
 -- but then equality can't be `_≡_`.
 SemEq : ∀ {i a} {α : Level a} {I : Type i} -> Desc I α -> Set
 SemEq (var i) = ⊤
 SemEq (π A D) = ⊥
 SemEq (D ⊛ E) = SemEq D × SemEq E
-
--- Should there be a separate type class for `imu`?
--- Is there any reason to bother with `desc`?
-Pi : ∀ {a} {α : Level a} -> (A : Univ α) -> (⟦ A ⟧ -> Set) -> Set
-Pi  bot     F = ⊤
-Pi  top     F = F tt
-Pi (enum n) F = Tabulate F
-Pi (σ A B)  F = Pi A λ x -> Pi (B x) λ y -> F (x , y)
-Pi  _       F = ∀ {x} -> F x
 
 mutual
   ExtendEq : ∀ {i a} {α : Level a} {I : Type i} -> Desc I α -> Set
@@ -64,19 +38,6 @@ mutual
   Eq (σ A B)    = Eq A × Pi A λ x -> Eq (B x)
   Eq (imu D j)  = ExtendEq D
   Eq  _         = ⊥
-
--- Begs for a view, but I don't want to mess with instance arguments.
-apply : ∀ {a} {α : Level a} {A : Univ α} {F : ⟦ A ⟧ -> Set} -> Pi A F -> (x : ⟦ A ⟧) -> F x
-apply {A = bot   } f   ()
-apply {A = top   } x   tt     = x
-apply {A = enum n} xs  e      = lookup e xs
-apply {A = σ A B } g  (x , y) = apply (apply g x) y
-apply {A = _ ≡ˢˡ  _} y x = y
-apply {A = nat     } y x = y
-apply {A = univ _  } y x = y
-apply {A = π _ _   } y x = y
-apply {A = desc _ _} y x = y
-apply {A = imu _ _ } y x = y
 
 mutual
   decSem : ∀ {i a} {α : Level a} {I : Type i} {D₀ : Desc I α} {{eqD₀ : ExtendEq D₀}}

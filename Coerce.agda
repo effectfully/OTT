@@ -2,7 +2,6 @@
 
 module OTT.Coerce where
 
-open import OTT.Prelude
 open import OTT.Core
 
 coerceFamℕ : ∀ {n₁ n₂} -> (A : ℕ -> Set) -> ⟦ n₁ ≅ n₂ ⟧ -> A n₁ -> A n₂
@@ -140,20 +139,20 @@ mutual
   coerceSem : ∀ {i₁ i₂ a₁ a₂ b₁ b₂}
                 {α₁ : Level a₁} {α₂ : Level a₂} {β₁ : Level b₁} {β₂ : Level b₂}
                 {I₁ : Type i₁} {I₂ : Type i₂}
-                {F₁ : ⟦ I₁ ⟧ -> Univ β₁} {F₂ : ⟦ I₂ ⟧ -> Univ β₂}
+                {B₁ : ⟦ I₁ ⟧ -> Univ β₁} {B₂ : ⟦ I₂ ⟧ -> Univ β₂}
             -> (D₁ : Desc I₁ α₁)
             -> (D₂ : Desc I₂ α₂)
             -> ⟦ D₁ ≅ᵈ D₂ ⟧
-            -> ⟦ F₁ ≅ F₂ ⟧
-            -> (⟦ D₁ ⟧ᵈ ⟦ F₁ ⟧ᵒ)
-            -> (⟦ D₂ ⟧ᵈ ⟦ F₂ ⟧ᵒ)
-  coerceSem (var j₁)  (var j₂)   qj       qF  x      = coerce (qF j₁ j₂ qj) x
-  coerceSem (π A₁ D₁) (π A₂ D₂) (qA , qD) qF  f      = λ x ->
+            -> ⟦ B₁ ≅ B₂ ⟧
+            -> (⟦ D₁ ⟧ᵈ ⟦ B₁ ⟧ᵒ)
+            -> (⟦ D₂ ⟧ᵈ ⟦ B₂ ⟧ᵒ)
+  coerceSem (var j₁)  (var j₂)   qj       qB  x      = coerce (qB j₁ j₂ qj) x
+  coerceSem (π A₁ D₁) (π A₂ D₂) (qA , qD) qB  f      = λ x ->
     let qA′ = sym A₁ {A₂} qA
         x′  = coerce qA′ x
-    in coerceSem (D₁ x′) (D₂ x) (qD x′ x (sym x (coherence qA′ x))) qF (f x′)
-  coerceSem (D₁ ⊛ E₁) (D₂ ⊛ E₂) (qD , qE) qF (s , t) =
-    coerceSem D₁ D₂ qD qF s , coerceSem E₁ E₂ qE qF t
+    in coerceSem (D₁ x′) (D₂ x) (qD x′ x (sym x (coherence qA′ x))) qB (f x′)
+  coerceSem (D₁ ⊛ E₁) (D₂ ⊛ E₂) (qD , qE) qB (s , t) =
+    coerceSem D₁ D₂ qD qB s , coerceSem E₁ E₂ qE qB t
   coerceSem (var _) (π _ _) ()
   coerceSem (var _) (_ ⊛ _) ()
   coerceSem (π _ _) (var _) ()
@@ -164,19 +163,19 @@ mutual
   coerceExtend : ∀ {i₁ i₂ a₁ a₂ b₁ b₂}
                    {α₁ : Level a₁} {α₂ : Level a₂} {β₁ : Level b₁} {β₂ : Level b₂}
                    {I₁ : Type i₁} {I₂ : Type i₂}
-                   {F₁ : ⟦ I₁ ⟧ -> Univ β₁} {F₂ : ⟦ I₂ ⟧ -> Univ β₂} {j₁ j₂}
+                   {B₁ : ⟦ I₁ ⟧ -> Univ β₁} {B₂ : ⟦ I₂ ⟧ -> Univ β₂} {j₁ j₂}
                -> (D₁ : Desc I₁ α₁)
                -> (D₂ : Desc I₂ α₂)
                -> ⟦ D₁ ≅ᵈ D₂ ⟧
-               -> ⟦ F₁ ≅ F₂ ⟧
+               -> ⟦ B₁ ≅ B₂ ⟧
                -> ⟦ j₁ ≅ j₂ ⟧
-               -> Extend D₁ ⟦ F₁ ⟧ᵒ j₁
-               -> Extend D₂ ⟦ F₂ ⟧ᵒ j₂
-  coerceExtend (var j₁)  (var j₂)   qj       qF qi  qji    = trans j₂ (right j₁ qj qji) qi
-  coerceExtend (π A₁ D₁) (π A₂ D₂) (qA , qD) qF qi (x , e) = let x′ = coerce qA x in
-    x′ , coerceExtend (D₁ x) (D₂ x′) (qD x x′ (coherence qA x)) qF qi e
-  coerceExtend (D₁ ⊛ E₁) (D₂ ⊛ E₂) (qD , qE) qF qi (s , e) =
-    coerceSem D₁ D₂ qD qF s , coerceExtend E₁ E₂ qE qF qi e
+               -> Extend D₁ ⟦ B₁ ⟧ᵒ j₁
+               -> Extend D₂ ⟦ B₂ ⟧ᵒ j₂
+  coerceExtend (var j₁)  (var j₂)   qj       qB qi  qji    = trans j₂ (right j₁ qj qji) qi
+  coerceExtend (π A₁ D₁) (π A₂ D₂) (qA , qD) qB qi (x , e) = let x′ = coerce qA x in
+    x′ , coerceExtend (D₁ x) (D₂ x′) (qD x x′ (coherence qA x)) qB qi e
+  coerceExtend (D₁ ⊛ E₁) (D₂ ⊛ E₂) (qD , qE) qB qi (s , e) =
+    coerceSem D₁ D₂ qD qB s , coerceExtend E₁ E₂ qE qB qi e
   coerceExtend (var _) (π _ _) ()
   coerceExtend (var _) (_ ⊛ _) ()
   coerceExtend (π _ _) (var _) ()

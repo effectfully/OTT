@@ -50,7 +50,7 @@ embedElim′ (var i) z = λ q -> z
 embedElim′ (π A D) h = lam λ x -> embedElim′ (D x) (apply h x)
 embedElim′ (D ⊛ E) h = λ x f -> embedElim′ E (h x f)
 
-elim′ : ∀ {i b c} {I : Type i} {β : Level b} {γ : Level c} {D : Desc I β} {j}
+elim′ : ∀ {i b} {I : Type i} {β : Level b} {D : Desc I β} {j}
       -> (P : μ (Erase D) triv -> Set) -> (h : Elim′ P D node) -> (d : μ D j) -> P (erase d)
 elim′ {D = D} P h = elimₑ P (embedElim′ D h) ∘ erase
 

@@ -7,7 +7,7 @@ open import Relation.Binary.PropositionalEquality
   as P renaming (refl to prefl; trans to ptrans; cong to pcong; cong₂ to pcong₂) using (_≡_) public
 open import Data.Empty public
 open import Data.Unit.Base using (⊤; tt) public
-open import Data.Nat.Base hiding (_⊔_; _≟_) public
+open import Data.Nat.Base hiding (_⊔_; _≟_; erase) public
 open import Data.Maybe.Base using (Maybe; nothing; just) public
 open import Data.Product hiding (,_) renaming (map to pmap) public
 

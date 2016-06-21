@@ -216,11 +216,10 @@ pattern !#₃ p = node (tag (just (just (just tt)))               , p)
 pattern !#₄ p = node (tag (just (just (just (just tt))))        , p)
 pattern !#₅ p = node (tag (just (just (just (just (just tt))))) , p)
 
-unit = enum 1
+pattern unit = enum 1
 Unit = Apply Enum 1
 
-triv : Unit
-triv = tag tt
+pattern triv = tag tt
 
 pos : ∀ {a} {α : Level a} -> Desc unit α
 pos = var triv

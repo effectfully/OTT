@@ -15,8 +15,7 @@ pattern inj₂ y = !#₁ (y , tt)
 
 [_,_] : ∀ {a b π} {α : Level a} {β : Level b} {A : Univ α} {B : Univ β} {P : A ⊎ B -> Set π}
       -> (∀ x -> P (inj₁ x)) -> (∀ y -> P (inj₂ y)) -> ∀ s -> P s
-[ f , g ] (inj₁ x) = f x
-[ f , g ] (inj₂ y) = g y
+[ f , g ] = elim′ _ (fromTuple (f , g))
 
 smap : ∀ {a₁ a₂ b₁ b₂} {α₁ : Level a₁} {α₂ : Level a₂} {β₁ : Level b₁} {β₂ : Level b₂}
          {A₁ : Univ α₁} {A₂ : Univ α₂} {B₁ : Univ β₁} {B₂ : Univ β₂}

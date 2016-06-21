@@ -22,19 +22,17 @@ pattern vconsₑ {n} q x xs = !#₁ (n , x , xs , q)
 _∷ᵥ_ : ∀ {n a} {A : Type a} -> ⟦ A ⇒ vec A n ⇒ vec A (suc n) ⟧
 _∷ᵥ_ {n} = vconsₑ (refl (suc n))
 
-{-# TERMINATING #-}
-elimVecₑ : ∀ {n a π} {A : Type a}
+gelimVec : ∀ {n a π} {A : Type a}
          -> (P : ∀ {n} -> Vec A n -> Set π)
          -> (∀ {n m} {xs : Vec A n}
                -> (q : ⟦ suc n ≅ m ⟧) -> (x : ⟦ A ⟧) -> P xs -> P {m} (vconsₑ q x xs))
          -> (∀ {m} -> (q : ⟦ 0 ≅ m ⟧) -> P {m} (vnilₑ q))
          -> (xs : Vec A n)
          -> P xs
-elimVecₑ P f z (vnilₑ  q)      = z q
-elimVecₑ P f z (vconsₑ q x xs) = f q x (elimVecₑ P f z xs)
+gelimVec P f z = gelim P (fromTuple ((λ _ -> z) , (λ n x xs r _ q -> f q x r)))
 
 foldVec : ∀ {n a π} {A : Type a} {P : Set π} -> (⟦ A ⟧ -> P -> P) -> P -> Vec A n -> P
-foldVec f z = elimVecₑ _ (const f) (const z)
+foldVec f z = gelimVec _ (const f) (const z)
 
 fromVec : ∀ {n a} {A : Type a} -> Vec A n -> List A
 fromVec = foldVec _∷_ []
@@ -45,7 +43,7 @@ elimVec′ : ∀ {n a π} {A : Type a}
          -> P []
          -> (xs : Vec A n)
          -> P (fromVec xs)
-elimVec′ P f z = elimVecₑ (P ∘ fromVec) (λ {n m xs} _ -> f {xs = xs}) (const z)
+elimVec′ P f z = gelimVec (P ∘ fromVec) (λ {n m xs} _ -> f {xs = xs}) (const z)
 
 elimVec : ∀ {n a p} {π : Level p} {A : Type a}
         -> (P : ∀ {n} -> Vec A n -> Univ π)
@@ -53,6 +51,4 @@ elimVec : ∀ {n a p} {π : Level p} {A : Type a}
         -> ⟦ P []ᵥ ⟧
         -> (xs : Vec A n)
         -> ⟦ P xs ⟧
-elimVec P f z = elimVecₑ (⟦_⟧ ∘ P)
-  (λ {n m xs} q x r -> J (λ m q -> P {m} (vconsₑ q x xs)) (f x r) q)
-  (λ {m}      q     -> J (λ m q -> P {m} (vnilₑ q)) z q)
+elimVec P f z = elim P (fromTuple (z , λ n x xs -> f x))

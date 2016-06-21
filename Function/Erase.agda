@@ -2,6 +2,14 @@ module OTT.Function.Erase where
 
 open import OTT.Core
 
+data UnitView : ∀ {a} {α : Level a} -> Univ α -> Set where
+  yes-unit : UnitView unit
+  no-unit  : ∀ {a} {α : Level a} {A : Univ α} -> UnitView A
+
+unitView : ∀ {a} {α : Level a} -> (A : Univ α) -> UnitView A
+unitView unit = yes-unit
+unitView A    = no-unit
+
 Erase : ∀ {i b} {I : Type i} {β : Level b} -> Desc I β -> Desc unit β
 Erase (var i) = pos
 Erase (π A D) = π A (λ x -> Erase (D x))
@@ -48,3 +56,14 @@ module _ {b} {β : Level b} {B : Unit -> Set} where
     uneraseExtend (var i)  q      = tt
     uneraseExtend (π A D) (x , e) = x , uneraseExtend (D x) e
     uneraseExtend (D ⊛ E) (x , e) = uneraseSem D x , uneraseExtend E e
+
+CheckErase : ∀ {i b} {I : Type i} {β : Level b} -> Desc I β -> Desc unit β
+CheckErase {I = I} D with unitView I
+... | yes-unit = D
+... | no-unit  = Erase D
+
+checkErase : ∀ {i b} {I : Type i} {β : Level b} {D : Desc I β} {j}
+           -> μ D j -> μ (CheckErase D) triv
+checkErase {I = I} d with unitView I
+... | yes-unit = d
+... | no-unit  = erase d

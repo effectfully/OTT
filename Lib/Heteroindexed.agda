@@ -17,3 +17,7 @@ homo irefl = refl
 inds-homo : ∀ {ι α} {I : Set ι} {A : Set α} {i j : I} {x y : A}
           -> [_]_≅_ {i = i} (λ _ -> A) x {j} y -> i ≡ j × x ≡ y
 inds-homo irefl = refl , refl
+
+data [_][_]_≅_ {ι α β} {I : Set ι} {i} (A : I -> Set α) {x : A i}
+               (B : ∀ {i} -> A i -> Set β) (y : B x) : ∀ {i} {x : A i} -> B x -> Set where
+  iirefl : [ A ][ B ] y ≅ y

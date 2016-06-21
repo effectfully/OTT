@@ -10,10 +10,9 @@ W A B = ⟦ w A B ⟧
 
 pattern sup x g = node (x , g , tt)
 
-{-# TERMINATING #-}
 elimW : ∀ {a b π} {α : Level a} {β : Level b} {A : Univ α} {B : ⟦ A ⟧ -> Univ β}
       -> (P : W A B -> Set π)
       -> (∀ {x} {g : ⟦ B x ⟧ -> W A B} -> (∀ y -> P (g y)) -> P (sup x g))
       -> ∀ w
       -> P w
-elimW P h (sup x g) = h (λ y -> elimW P h (g y))
+elimW P h = elim′ P λ _ _ -> h

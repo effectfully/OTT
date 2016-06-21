@@ -6,7 +6,6 @@ open import Function public
 open import Relation.Binary.PropositionalEquality
   as P renaming (refl to prefl; trans to ptrans; cong to pcong; cong₂ to pcong₂) using (_≡_) public
 open import Data.Empty public
-open import Data.Unit.Base using (⊤; tt) public
 open import Data.Nat.Base hiding (_⊔_; _≟_; erase) public
 open import Data.Maybe.Base using (Maybe; nothing; just) public
 open import Data.Product hiding (,_) renaming (map to pmap) public
@@ -20,6 +19,12 @@ open import Relation.Binary
 infix 4  ,_
 
 pattern ,_ y = _ , y
+
+record ⊤ {α} : Set α where
+  constructor tt
+
+⊤₀ : Set
+⊤₀ = ⊤
 
 instance
   iprefl : ∀ {α} {A : Set α} {x : A} -> x ≡ x
@@ -51,6 +56,14 @@ open Apply public
 tag-inj : ∀ {α β} {A : Set α} {B : A -> Set β} {x} {y₁ y₂ : B x}
         -> tag {B = B} y₁ ≡ tag y₂ -> y₁ ≡ y₂
 tag-inj prefl = prefl
+
+data IMatch {ι α β} {I : Set ι} {i} (A : I -> Set α) {x : A i} 
+            (B : ∀ {i} -> A i -> Set β) (y : B x) : Set (ι ⊔ₘ α ⊔ₘ β) where
+  imatched : ∀ {i} {x : A i} -> (y′ : B x) -> [ A ][ B ] y ≅ y′ -> IMatch A B y
+
+imatch : ∀ {ι α β} {I : Set ι} {i}
+       -> (A : I -> Set α) {x : A i} -> (B : ∀ {i} -> A i -> Set β) -> (y : B x) -> IMatch A B y
+imatch A B y = imatched y iirefl
 
 module _ {α} {A : Set α} where
   open import Relation.Nullary.Decidable

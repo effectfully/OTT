@@ -1,104 +1,67 @@
 module OTT.Function.Elim where
 
-open import OTT.Main
-open import OTT.Function.Pi
-open import OTT.Function.Erase
+open import OTT.Core
+open import OTT.Coerce
 
-Hyp : ∀ {i b} {β : Level b} {I : Type i} {B}
-    -> (∀ {i} -> B i -> Set) -> (D : Desc I β) -> ⟦ D ⟧ᵈ B -> Set
-Hyp P (var i)  y      = P y
-Hyp P (π A D)  f      = ∀ x -> Hyp P (D x) (f x) 
-Hyp P (D ⊛ E) (x , y) = Hyp P D x × Hyp P E y
+Hyp : ∀ {i b γ} {β : Level b} {I : Type i} {B}
+    -> (∀ {i} -> B i -> Set γ) -> (D : Desc I β) -> ⟦ D ⟧ᵈ B -> Set γ
+Hyp C (var i)  y      = C y
+Hyp C (π A D)  f      = ∀ x -> Hyp C (D x) (f x) 
+Hyp C (D ⊛ E) (x , y) = Hyp C D x × Hyp C E y
 
-Elimₑ : ∀ {i b} {β : Level b} {I : Type i} {B}
-      -> (∀ {i} -> B i -> Set) -> (D : Desc I β) -> (∀ {j} -> Extend D B j -> B j) -> Set
-Elimₑ P (var i) k = ∀ {j} -> (q : ⟦ i ≅ j ⟧) -> P (k q)
-Elimₑ P (π A D) k = Pi A λ x -> Elimₑ P (D x) (k ∘ _,_ x)
-Elimₑ P (D ⊛ E) k = ∀ x -> Hyp P D x -> Elimₑ P E (k ∘ _,_ x)
+GElim : ∀ {i b γ} {β : Level b} {I : Type i} {B}
+      -> (∀ {i} -> B i -> Set γ) -> (D : Desc I β) -> (∀ {j} -> Extend D B j -> B j) -> Set γ
+GElim C (var i) k = ∀ j -> (q : ⟦ i ≅ j ⟧) -> C (k q)
+GElim C (π A D) k = ∀ x -> GElim C (D x) (k ∘ _,_ x)
+GElim C (D ⊛ E) k = ∀ x -> Hyp C D x -> GElim C E (k ∘ _,_ x)
 
-module _ {i b} {β : Level b} {I : Type i} {D : Desc I β}
-         (P : ∀ {j} -> μ D j -> Set) (h : Elimₑ P D node) where
+module _ {i b γ} {β : Level b} {I : Type i} {D : Desc I β}
+         (C : ∀ {j} -> μ D j -> Set γ) (h : GElim C D node) where
   mutual
     elimExtend : ∀ {j}
                -> (E : Desc I β) {k : ∀ {j} -> Extend E (μ D) j -> μ D j}
-               -> Elimₑ P E k
+               -> GElim C E k
                -> (e : Extend E (μ D) j)
-               -> P (k e)
-    elimExtend (var i) z  q      = z q
-    elimExtend (π A D) h (x , e) = elimExtend (D x) (apply h x)     e
+               -> C (k e)
+    elimExtend (var i) z  q      = z _ q
+    elimExtend (π A D) h (x , e) = elimExtend (D x) (h x)           e
     elimExtend (D ⊛ E) h (r , e) = elimExtend  E    (h r (hyp D r)) e
 
-    hyp : ∀ E -> (d : ⟦ E ⟧ᵈ (μ D)) -> Hyp P E d
-    hyp (var i)  d      = elimₑ d
+    hyp : ∀ E -> (d : ⟦ E ⟧ᵈ (μ D)) -> Hyp C E d
+    hyp (var i)  d      = gelim d
     hyp (π A D)  f      = λ x -> hyp (D x) (f x)
     hyp (D ⊛ E) (r , s) = hyp D r , hyp E s
 
-    elimₑ : ∀ {j} -> (d : μ D j) -> P d
-    elimₑ (node e) = elimExtend D h e
+    gelim : ∀ {j} -> (d : μ D j) -> C d
+    gelim (node e) = elimExtend D h e
 
-Elim′ : ∀ {i b} {β : Level b} {I : Type i} {B}
-      -> (B -> Set) -> (D : Desc I β) -> (Extend (Erase D) (λ _ -> B) triv -> B) -> Set
-Elim′ P (var i) k = P (k tt)
-Elim′ P (π A D) k = Pi A λ x -> Elim′ P (D x) (k ∘ _,_ x)
-Elim′ P (D ⊛ E) k = ∀ x -> Hyp P (Erase D) x -> Elim′ P E (k ∘ _,_ x)
+Elim : ∀ {i b γ} {β : Level b} {I : Type i} {B}
+     -> (∀ {i} -> B i -> Set γ) -> (D : Desc I β) -> (∀ {j} -> Extend D B j -> B j) -> Set γ
+Elim C (var i) k = C (k (refl i))
+Elim C (π A D) k = ∀ x -> Elim C (D x) (k ∘ _,_ x)
+Elim C (D ⊛ E) k = ∀ x -> Hyp C D x -> Elim C E (k ∘ _,_ x)
 
-embedElim′ : ∀ {i b} {β : Level b} {I : Type i} {B} {P : B -> Set}
-           -> (D : Desc I β) {k : Extend (Erase D) (λ _ -> B) triv -> B}
-           -> Elim′ P  D        k
-           -> Elimₑ P (Erase D) k
-embedElim′ (var i) z = λ q -> z
-embedElim′ (π A D) h = lam λ x -> embedElim′ (D x) (apply h x)
+embedElim : ∀ {i b c} {β : Level b} {γ : Level c} {I : Type i}
+              {B : ⟦ I ⟧ -> Univ β} {C : ∀ {i} -> ⟦ B i ⟧ -> Univ γ}
+          -> (D : Desc I β) {k : ∀ {j} -> Extend D ⟦ B ⟧ᵒ j -> ⟦ B j ⟧}
+          -> Elim  ⟦ C ⟧ᵒ D k
+          -> GElim ⟦ C ⟧ᵒ D k
+embedElim {C = C} (var i) {k} z = λ j q -> J (λ j -> C ∘ k {j}) z q
+embedElim         (π A D)     h = λ x -> embedElim (D x) (h x)
+embedElim         (D ⊛ E)     h = λ x f -> embedElim E (h x f)
+
+elim : ∀ {i b c} {β : Level b} {γ : Level c} {I : Type i} {D : Desc I β} {j}
+     -> (C : ∀ {j} -> μ D j -> Univ γ) -> (h : Elim ⟦ C ⟧ᵒ D node) -> (d : μ D j) -> ⟦ C d ⟧
+elim {D = D} C h = gelim ⟦ C ⟧ᵒ (embedElim D h)
+
+embedElim′ : ∀ {b γ} {β : Level b} {B} {C : B -> Set γ}
+           -> (D : Desc unit β) {k : ∀ {j} -> Extend D (const B) j -> B}
+           -> Elim  C D k
+           -> GElim C D k
+embedElim′ (var i) z = λ j q -> z
+embedElim′ (π A D) h = λ x -> embedElim′ (D x) (h x)
 embedElim′ (D ⊛ E) h = λ x f -> embedElim′ E (h x f)
 
-elim′ : ∀ {i b} {I : Type i} {β : Level b} {D : Desc I β} {j}
-      -> (P : μ (Erase D) triv -> Set) -> (h : Elim′ P D node) -> (d : μ D j) -> P (erase d)
-elim′ {D = D} P h = elimₑ P (embedElim′ D h) ∘ erase
-
-Elim : ∀ {i b} {β : Level b} {I : Type i} {B}
-     -> (∀ {i} -> B i -> Set) -> (D : Desc I β) -> (∀ {j} -> Extend D B j -> B j) -> Set
-Elim P (var i) k = P (k (refl i))
-Elim P (π A D) k = Pi A λ x -> Elim P (D x) (k ∘ _,_ x)
-Elim P (D ⊛ E) k = ∀ x -> Hyp P D x -> Elim P E (k ∘ _,_ x)
-
-embedElim : ∀ {i b p} {β : Level b} {π : Level p} {I : Type i}
-              {B : ⟦ I ⟧ -> Univ β} {P : ∀ {i} -> ⟦ B i ⟧ -> Univ π}
-          -> (D : Desc I β) {k : ∀ {j} -> Extend D ⟦ B ⟧ᵒ j -> ⟦ B j ⟧}
-          -> Elim  ⟦ P ⟧ᵒ D k
-          -> Elimₑ ⟦ P ⟧ᵒ D k
-embedElim {P = P} (var i) {k} z = λ q -> J (λ j -> P ∘ k {j}) z q
-embedElim         (π A D)     f = lam λ x -> embedElim (D x) (apply f x)
-embedElim         (D ⊛ E)     f = λ x h -> embedElim E (f x h)
-
-elim : ∀ {i b p} {β : Level b} {π : Level p} {I : Type i} {D : Desc I β} {j}
-     -> (P : ∀ {j} -> μ D j -> Univ π) -> (h : Elim ⟦ P ⟧ᵒ D node) -> (d : μ D j) -> ⟦ P d ⟧
-elim {D = D} P h = elimₑ ⟦ P ⟧ᵒ (embedElim D h)
-
-
-
-private
-  module Test where
-    vec : ∀ {a} -> Type a -> ℕ -> Type a
-    vec A = icmu
-          $ var 0
-          ∷ (π nat λ n -> A ⇨ var n ⊛ var (suc n))
-          ∷ []
-
-    Vec : ∀ {a} -> Type a -> ℕ -> Set
-    Vec A n = ⟦ vec A n ⟧
-
-    pattern vnilₑ      q      = #₀ q
-    pattern vconsₑ {n} q x xs = !#₁ (n , x , xs , q)
-
-    []ᵥ : ∀ {a} {A : Type a} -> Vec A 0
-    []ᵥ = vnilₑ (refl 0)
-
-    _∷ᵥ_ : ∀ {n a} {A : Type a} -> ⟦ A ⇒ vec A n ⇒ vec A (suc n) ⟧
-    _∷ᵥ_ {n} = vconsₑ (refl (suc n))
-
-    elimVec : ∀ {n a p} {π : Level p} {A : Type a}
-            -> (P : ∀ {n} -> Vec A n -> Univ π)
-            -> (∀ {n} {xs : Vec A n} -> (x : ⟦ A ⟧) -> ⟦ P xs ⇒ P (x ∷ᵥ xs) ⟧)
-            -> ⟦ P []ᵥ ⟧
-            -> (xs : Vec A n)
-            -> ⟦ P xs ⟧
-    elimVec P f z = elim P (z , lam λ x xs -> f x)
+elim′ : ∀ {b γ} {β : Level b} {D : Desc unit β} {j}
+      -> (C : μ D triv -> Set γ) -> (h : Elim C D node) -> (d : μ D j) -> C d
+elim′ {D = D} C h = gelim C (embedElim′ D h)

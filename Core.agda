@@ -158,7 +158,7 @@ _≅ᵈ_ : ∀ {i₁ i₂ a₁ a₂} {ι₁ : Level i₁} {ι₂ : Level i₂}
          {α₁ : Level a₁} {α₂ : Level a₂} {I₁ : Type ι₁} {I₂ : Type ι₂}
      -> Desc I₁ α₁ -> Desc I₂ α₂ -> Prop
 var i₁    ≅ᵈ var i₂    = i₁ ≅ i₂
-π A₁ D₁   ≅ᵈ π A₂ D₂   = A₁ ≈ A₂ & π A₁ λ x₁ -> π A₂ λ x₂ -> x₁ ≅ x₂ ⇒ D₁ x₁ ≅ᵈ D₂ x₂
+π A₁ D₁   ≅ᵈ π A₂ D₂   = A₁ ≈ A₂ & D₁ ≅ D₂
 (D₁ ⊛ E₁) ≅ᵈ (D₂ ⊛ E₂) = D₁ ≅ᵈ D₂ & E₁ ≅ᵈ E₂
 _         ≅ᵈ _         = bot
 
@@ -178,7 +178,7 @@ univ α₁    ≃ univ α₂    = α₁ ≟ˡ α₂
 π A₁ B₁    ≃ π A₂ B₂    = A₂ ≈ A₁ & π A₁ λ x₁ -> π A₂ λ x₂ -> x₂ ≅ x₁ ⇒ B₁ x₁ ≈ B₂ x₂
 desc I₁ α₁ ≃ desc I₂ α₂ = I₁ ≃ I₂ & α₁ ≟ˡ α₂
 imu D₁ j₁  ≃ imu D₂ j₂  = D₁ ≊ᵈ D₂ & j₁ ≅ j₂
-_           ≃ _         = bot
+_          ≃ _          = bot
 
 _≅e_ : ∀ {i₁ i₂ a₁ a₂ b₁ b₂} {ι₁ : Level i₁} {ι₂ : Level i₂}
          {α₁ : Level a₁} {α₂ : Level a₂} {β₁ : Level b₁} {β₂ : Level b₂}

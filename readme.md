@@ -74,7 +74,7 @@ The straightforward strict equality:
 _≅ᵈ_ : ∀ {i₁ i₂ a₁ a₂} {α₁ : Level a₁} {α₂ : Level a₂} {I₁ : Type i₁} {I₂ : Type i₂}
      -> Desc I₁ α₁ -> Desc I₂ α₂ -> Prop
 var i₁    ≅ᵈ var i₂    = i₁ ≅ i₂
-π A₁ D₁   ≅ᵈ π A₂ D₂   = A₁ ≈ A₂ & π A₁ λ x₁ -> π A₂ λ x₂ -> x₁ ≅ x₂ ⇒ D₁ x₁ ≅ᵈ D₂ x₂
+π A₁ D₁   ≅ᵈ π A₂ D₂   = A₁ ≈ A₂ & D₁ ≅ D₂
 (D₁ ⊛ E₁) ≅ᵈ (D₂ ⊛ E₂) = D₁ ≅ᵈ D₂ & E₁ ≅ᵈ E₂
 _         ≅ᵈ _         = bot
 ```

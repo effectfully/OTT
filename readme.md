@@ -204,7 +204,7 @@ test : (ns ≟ ns) ≡ yes prefl
 test = prefl
 ```
 
-There is [an alternative encoding](https://github.com/effectfully/random-stuff/blob/master/IRDesc.agda) in terms of proper propositional descriptions (see [6]), which is a slightly modified version of [7]. It's more standard, more powerful (it's able to express induction-recursion), but also significantly more complicated: data types must be defined mutually with coercions (or maybe we can to use a parametrised module like in the model, but it still doesn't look nice), which results in a giant mutual block. I didn't try to define equality and coercions for descriptions, but I suspect it's much harder than how it's now. I'll go with the current simple approach.
+There is [an alternative encoding](https://github.com/effectfully/random-stuff/blob/master/Desc/IRDesc.agda) which is a modified version of [7]. It's more powerful (it's able to express induction-recursion), but also significantly more complicated: data types must be defined mutually with coercions, which results in a giant mutual block. I didn't try to define equality and coercions for descriptions, but I suspect it's much harder than how it's now. I'll go with the current simple app
 
 ## Not implemented
 

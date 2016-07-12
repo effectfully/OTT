@@ -59,10 +59,6 @@ data Desc {i b} {ι : Level i} (I : Type ι) (β : Level b) : Set where
       -> (A : Univ α) -> (⟦ A ⟧ -> Desc I β) -> Desc I β
   _⊛_ : Desc I β -> Desc I β -> Desc I β
 
-_⇨_ : ∀ {i a b} {ι : Level i} {α : Level a} {β : Level b} {I : Type ι} .{{_ : a ≤ₘ b}}
-     -> (A : Univ α) -> Desc I β -> Desc I β
-A ⇨ D = π A λ _ -> D
-
 ⟦_⟧ᵈ : ∀ {i a} {ι : Level i} {α : Level a} {I : Type ι}
      -> Desc I α -> (⟦ I ⟧ -> Set) -> Set
 ⟦ var i ⟧ᵈ B = B i
@@ -90,6 +86,10 @@ data μ {i a} {ι : Level i} {α : Level a} {I : Type ι} (D : Desc I α) j : Se
 knot : ∀ {i a} {ι : Level i} {α : Level a} {I : Type ι} {D : Desc I α} {j}
      -> μ D j -> Extend D (μ D) j
 knot (node e) = e
+
+_⇨_ : ∀ {i a b} {ι : Level i} {α : Level a} {β : Level b} {I : Type ι} .{{_ : a ≤ₘ b}}
+    -> Univ α -> Desc I β -> Desc I β
+A ⇨ D = π A λ _ -> D
 
 data Univ where
   bot  : Prop

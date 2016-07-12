@@ -4,7 +4,7 @@ It's an implementation of Observational Type Theory as an Agda library. The univ
 
 ## Details
 
-(The readme is a bit old: a `Level` now fully reifies the corresponding `MetaLevel` and there is also a [generic machinery](https://github.com/effectfully/OTT/blob/master/Function/Elim.agda) which allows to derive intensional-type-theory-like eliminators which is annoying to do by hand when a data type is indexed and you need to explicitly use `J`)
+(The readme is a bit old: a `Level` now fully reifies the corresponding `MetaLevel` and there is also a [generic machinery](https://github.com/effectfully/OTT/blob/master/Function/Elim.agda) which allows to derive intensional-type-theory-like eliminators which is annoying to do by hand when a data type is indexed so you need to explicitly use `J`)
 
 There are two main kinds of universe levels (there is also yet another one, but it's not important): metatheory levels (the usual `Level` type renamed to `MetaLevel`) and target theory levels, indexed by metalevels:
 

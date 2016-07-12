@@ -69,3 +69,15 @@ dhcong₂ : ∀ {α β γ} {A : Set α} {B : A -> Set β} {C : Set γ} {x₁ x�
         -> f x₁ y₁ # f x₂ y₂
 dhcong₂ f inj (yes refl) q = dcong (f _) (homo ∘ inj) (q _)
 dhcong₂ f inj (no c)     q = no (c ∘ inds ∘ inj)
+
+,-inj : ∀ {α β} {A : Set α} {B : A -> Set β} {x₁ x₂} {y₁ : B x₁} {y₂ : B x₂}
+      -> (x₁ , y₁) ≡ (x₂ , y₂) -> [ B ] y₁ ≅ y₂
+,-inj refl = irefl
+
+_<,>ᵈ_ : ∀ {α β} {A : Set α} {B : Set β} {x₁ x₂ : A} {y₁ y₂ : B}
+       -> x₁ # x₂ -> y₁ # y₂ -> x₁ , y₁ # x₂ , y₂
+_<,>ᵈ_ = dcong₂ _,_ (inds-homo ∘ ,-inj)
+
+_<,>ᵈⁱ_ : ∀ {α β} {A : Set α} {B : A -> Set β} {x₁ x₂} {y₁ : B x₁} {y₂ : B x₂}
+        -> x₁ # x₂ -> (∀ y₂ -> y₁ # y₂) -> x₁ , y₁ # x₂ , y₂
+_<,>ᵈⁱ_ = dhcong₂ _,_ ,-inj

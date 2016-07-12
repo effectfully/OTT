@@ -50,7 +50,7 @@ mutual
             -> (D : Desc I α) {{eqD : ExtendEq D}} -> IsSet (Extend D (μ D₀) j)
   decExtend (var i)                q₁        q₂       = yes contr
   decExtend (π A D) {{eqA , eqD}} (x₁ , e₁) (x₂ , e₂) =
-    _≟_ {{eqA}} x₁ x₂ <,>ᵈᵒ decExtend (D x₁) {{apply eqD x₁}} e₁
+    _≟_ {{eqA}} x₁ x₂ <,>ᵈⁱ decExtend (D x₁) {{apply eqD x₁}} e₁
   decExtend (D ⊛ E) {{eqD , eqE}} (s₁ , e₁) (s₂ , e₂) =
     decSem D {{eqD}} s₁ s₂ <,>ᵈ decExtend E {{eqE}} e₁ e₂
 
@@ -66,7 +66,7 @@ mutual
   _≟_ {A = enum n  }               (tag e₁)  (tag e₂)  = dcong tag tag-inj (decEnum n e₁ e₂)
   _≟_ {A = univ α  } {{()}}
   _≟_ {A = σ A B   } {{eqA , eqB}} (x₁ , y₁) (x₂ , y₂) =
-    _≟_ {{eqA}} x₁ x₂ <,>ᵈᵒ _≟_ {{apply eqB x₁}} y₁
+    _≟_ {{eqA}} x₁ x₂ <,>ᵈⁱ _≟_ {{apply eqB x₁}} y₁
   _≟_ {A = π A B   } {{()}}
   _≟_ {A = desc I α} {{()}}
   _≟_ {A = imu D j }                d₁        d₂       = decMu d₁ d₂

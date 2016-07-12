@@ -36,18 +36,6 @@ instance
 pright : ∀ {α} {A : Set α} {x y z : A} -> x ≡ y -> x ≡ z -> y ≡ z
 pright prefl prefl = prefl
 
-,-inj : ∀ {α β} {A : Set α} {B : A -> Set β} {x₁ x₂} {y₁ : B x₁} {y₂ : B x₂}
-      -> (x₁ , y₁) ≡ (x₂ , y₂) -> [ B ] y₁ ≅ y₂
-,-inj prefl = irefl
-
-_<,>ᵈ_ : ∀ {α β} {A : Set α} {B : Set β} {x₁ x₂ : A} {y₁ y₂ : B}
-       -> x₁ # x₂ -> y₁ # y₂ -> x₁ , y₁ # x₂ , y₂
-_<,>ᵈ_ = dcong₂ _,_ (inds-homo ∘ ,-inj)
-
-_<,>ᵈᵒ_ : ∀ {α β} {A : Set α} {B : A -> Set β} {x₁ x₂} {y₁ : B x₁} {y₂ : B x₂}
-        -> x₁ # x₂ -> (∀ y₂ -> y₁ # y₂) -> x₁ , y₁ # x₂ , y₂
-_<,>ᵈᵒ_ = dhcong₂ _,_ ,-inj
-
 record Apply {α β} {A : Set α} (B : A -> Set β) x : Set β where
   constructor tag
   field detag : B x

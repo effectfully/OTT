@@ -41,7 +41,6 @@ lam {A = bot   } f = tt
 lam {A = top   } f = f tt
 lam {A = enum n} f = tabulate f
 lam {A = σ A B } g = lam λ x -> lam λ y -> g (x , y)
-lam {A = _ ≡ˢˡ  _} f = f _
 lam {A = nat     } f = f _
 lam {A = univ _  } f = f _
 lam {A = π _ _   } f = f _
@@ -53,7 +52,6 @@ apply {A = bot   } f   ()
 apply {A = top   } x   tt     = x
 apply {A = enum n} xs  e      = lookup e xs
 apply {A = σ A B } g  (x , y) = apply (apply g x) y
-apply {A = _ ≡ˢˡ  _} y x = y
 apply {A = nat     } y x = y
 apply {A = univ _  } y x = y
 apply {A = π _ _   } y x = y

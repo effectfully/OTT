@@ -4,6 +4,8 @@ It's an implementation of Observational Type Theory as an Agda library. The univ
 
 ## Details
 
+(The readme is a bit old, a `Level` now fully reifies the corresponding `MetaLevel`)
+
 There are two main kinds of universe levels (there is also yet another one, but it's not important): metatheory levels (the usual `Level` type renamed to `MetaLevel`) and target theory levels, indexed by metalevels:
 
 ```

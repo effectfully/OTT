@@ -52,16 +52,16 @@ elimFin P f x = elim P (fromTuple ((λ _ -> x) , (λ _ _ -> f)))
 
 
 
--- private
---   module Test where
---     -- _+ᶠ_ : ∀ {n m} -> (i : Fin n) -> Fin m -> Fin (fromFin i + m)
---     -- i +ᶠ j = elimFin′ (λ n -> Fin (n + _)) fsuc j i 
+private
+  module Test where
+    -- _+ᶠ_ : ∀ {n m} -> (i : Fin n) -> Fin m -> Fin (fromFin i + m)
+    -- i +ᶠ j = elimFin′ (λ n -> Fin (n + _)) fsuc j i 
 
---     _+ᶠ_ : ∀ {n m} -> (i : Fin n) -> Fin m -> Fin (fromFin i + m)
---     i +ᶠ j = elimFin (λ i -> fin (fromFin i + _)) fsuc j i 
+    _+ᶠ_ : ∀ {n m} -> (i : Fin n) -> Fin m -> Fin (fromFin i + m)
+    i +ᶠ j = elimFin (λ i -> fin (fromFin i + _)) fsuc j i 
 
---     postulate
---       n m : ℕ
+    postulate
+      n m : ℕ
 
---     test : ⟦ fromFin ((Fin (3 + n) ∋ fsuc (fsuc fzero)) +ᶠ (Fin (2 + m) ∋ fsuc fzero)) ≅ 3 ⟧
---     test = tt
+    test : ⟦ fromFin ((Fin (3 + n) ∋ fsuc (fsuc fzero)) +ᶠ (Fin (2 + m) ∋ fsuc fzero)) ≅ 3 ⟧
+    test = tt

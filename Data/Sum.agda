@@ -4,8 +4,8 @@ open import OTT.Main
 
 infixr 3 _⊕_ _⊎_
 
-_⊕_ : ∀ {a b} {α : Level a} {β : Level b} -> Univ α -> Univ β -> Type (a ⊔ₘ b)
-A ⊕ B = cmu $ (A ⇨ pos) ∷ (B ⇨ pos) ∷ []
+_⊕_ : ∀ {a b} {α : Level a} {β : Level b} -> Univ α -> Univ β -> Type₋₁ (α ⊔ β)
+_⊕_ {α = α} {β} A B = cmu′ (α ⊔ β) $ (A ⇨ pos) ∷ (B ⇨ pos) ∷ []
 
 _⊎_ : ∀ {a b} {α : Level a} {β : Level b} -> Univ α -> Univ β -> Set
 A ⊎ B = ⟦ A ⊕ B ⟧

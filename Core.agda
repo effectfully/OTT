@@ -6,15 +6,14 @@ open import OTT.Prelude public
 
 infixr 1 _&_
 infixr 2 _⇒_ _⇨_ _⊛_
-infix  3 _≈_ _≃_ _≅_ _≅ᵉ_ _≅ᵈ_ _≊ᵈ_ _≅s_ _≅e_
+infix  3 _≟ⁿ_ _≟ˡ_ _≈_ _≃_ _≅_ _≅ᵉ_ _≅ᵈ_ _≊ᵈ_ _≅s_ _≅e_
+
+_≤ₘ_ : MetaLevel -> MetaLevel -> Set
+a ≤ₘ b = a ⊔ₘ b ≡ b
 
 data Level : MetaLevel -> Set where
   lzero : Level lzeroₘ
-  lsuc  : ∀ a -> Level (lsucₘ a)
-
-data SomeLevel : Set where
-  meta  : MetaLevel -> SomeLevel
-  level : ∀ {a} -> Level a -> SomeLevel
+  lsuc  : ∀ {a} -> Level a -> Level (lsucₘ a)
 
 natToMetaLevel : ℕ -> MetaLevel
 natToMetaLevel  0      = lzeroₘ
@@ -22,95 +21,99 @@ natToMetaLevel (suc n) = lsucₘ (natToMetaLevel n)
 
 natToLevel : ∀ n -> Level (natToMetaLevel n)
 natToLevel  0      = lzero
-natToLevel (suc n) = lsuc (natToMetaLevel n)
+natToLevel (suc n) = lsuc (natToLevel n)
 
 _⊔_ : ∀ {a b} -> Level a -> Level b -> Level (a ⊔ₘ b)
 lzero   ⊔ lzero  = lzero
-lzero   ⊔ lsuc b = lsuc b
-lsuc a  ⊔ lzero  = lsuc a
-lsuc a  ⊔ lsuc b = lsuc (a ⊔ₘ b)
+lzero   ⊔ lsuc β = lsuc β
+lsuc α  ⊔ lzero  = lsuc α
+lsuc α  ⊔ lsuc β = lsuc (α ⊔ β)
 
 _⊔ₘ₀_ : ∀ {a} -> MetaLevel -> Level a -> MetaLevel
-a ⊔ₘ₀ lzero  = lzeroₘ
-a ⊔ₘ₀ lsuc b = a ⊔ₘ lsucₘ b
+a ⊔ₘ₀ lzero      = lzeroₘ
+a ⊔ₘ₀ lsuc {b} β = a ⊔ₘ lsucₘ b
 
 _⊔₀_ : ∀ {a b} -> Level a -> (β : Level b) -> Level (a ⊔ₘ₀ β)
 α ⊔₀ lzero  = lzero
-α ⊔₀ lsuc b = α ⊔ lsuc b
+α ⊔₀ lsuc β = α ⊔ lsuc β
 
 data Univ : ∀ {a} -> Level a -> Set
 
 Univ# = Univ ∘ natToLevel
 Type# = Univ# ∘ suc
 Prop  = Univ# 0
-Type  = Univ ∘ lsuc
+Type  = λ {a} -> Univ ∘ lsuc {a}
 Type₀ = Type# 0
+
+Type₋₁ : ∀ {a} -> Level a -> Set
+Type₋₁ α = Univ (lsuc lzero ⊔ α)
 
 ⟦_⟧ : ∀ {a} {α : Level a} -> Univ α -> Set
 
 _≃_ : ∀ {a b} {α : Level a} {β : Level b} -> Univ α -> Univ β -> Prop
 _≅_ : ∀ {a b} {α : Level a} {β : Level b} {A : Univ α} {B : Univ β} -> ⟦ A ⟧ -> ⟦ B ⟧ -> Prop
 
-data Desc {i b} (I : Type i) (β : Level b) : Set where
+data Desc {i b} {ι : Level i} (I : Type ι) (β : Level b) : Set where
   var : ⟦ I ⟧ -> Desc I β
-  π   : ∀ {a} {α : Level a} .{{_ : a ⊔ₘ b ≡ b}}
+  π   : ∀ {a} {α : Level a} .{{_ : a ≤ₘ b}}
       -> (A : Univ α) -> (⟦ A ⟧ -> Desc I β) -> Desc I β
   _⊛_ : Desc I β -> Desc I β -> Desc I β
 
-_⇨_ : ∀ {i a b} {α : Level a} {β : Level b} {I : Type i} .{{_ : a ⊔ₘ b ≡ b}}
+_⇨_ : ∀ {i a b} {ι : Level i} {α : Level a} {β : Level b} {I : Type ι} .{{_ : a ≤ₘ b}}
      -> (A : Univ α) -> Desc I β -> Desc I β
 A ⇨ D = π A λ _ -> D
 
-⟦_⟧ᵈ : ∀ {i a} {α : Level a} {I : Type i} -> Desc I α -> (⟦ I ⟧ -> Set) -> Set
+⟦_⟧ᵈ : ∀ {i a} {ι : Level i} {α : Level a} {I : Type ι}
+     -> Desc I α -> (⟦ I ⟧ -> Set) -> Set
 ⟦ var i ⟧ᵈ B = B i
 ⟦ π A D ⟧ᵈ B = ∀ x -> ⟦ D x ⟧ᵈ B
 ⟦ D ⊛ E ⟧ᵈ B = ⟦ D ⟧ᵈ B × ⟦ E ⟧ᵈ B
 
-Extend : ∀ {i a} {α : Level a} {I : Type i} -> Desc I α -> (⟦ I ⟧ -> Set) -> ⟦ I ⟧ -> Set
-Extend (var j) B i = ⟦ j ≅ i ⟧
+Extend : ∀ {i a} {ι : Level i} {α : Level a} {I : Type ι}
+       -> Desc I α -> (⟦ I ⟧ -> Set) -> ⟦ I ⟧ -> Set
+Extend (var i) B j = ⟦ i ≅ j ⟧
 Extend (π A D) B i = ∃ λ x -> Extend (D x) B i
 Extend (D ⊛ E) B i = ⟦ D ⟧ᵈ B × Extend E B i
 
 -- Funnily, Agda treats inductive records and data types differently wrt termination checking.
 -- Perhaps it's not clear to Agda that induction is structural because
 -- irrefutable pattern matching elaborates into function application. Do we need refutable patterns?
--- record μ {i a} {α : Level a} {I : Type i} (D : Desc I α) j : Set where
+-- record μ {i a} {ι : Level i} {α : Level a} {I : Type ι} (D : Desc I α) j : Set where
 --   inductive
 --   constructor node
 --   field knot : Extend D (μ D) j
 -- open μ public
 
-data μ {i a} {α : Level a} {I : Type i} (D : Desc I α) j : Set where
+data μ {i a} {ι : Level i} {α : Level a} {I : Type ι} (D : Desc I α) j : Set where
   node : Extend D (μ D) j -> μ D j
 
-knot : ∀ {i a} {α : Level a} {I : Type i} {D : Desc I α} {j} -> μ D j -> Extend D (μ D) j
+knot : ∀ {i a} {ι : Level i} {α : Level a} {I : Type ι} {D : Desc I α} {j}
+     -> μ D j -> Extend D (μ D) j
 knot (node e) = e
 
 data Univ where
-  bot   : Prop
-  top   : Prop
-  _≡ˢˡ_ : SomeLevel -> SomeLevel -> Prop
-  nat   : Type₀
-  enum  : ℕ -> Type₀
-  univ  : ∀ {a} -> Level a -> Type a
-  σ     : ∀ {a b} {α : Level a} {β : Level b}
-        -> (A : Univ α) -> (⟦ A ⟧ -> Univ β) -> Univ (α ⊔  β)
-  π     : ∀ {a b} {α : Level a} {β : Level b}
-        -> (A : Univ α) -> (⟦ A ⟧ -> Univ β) -> Univ (α ⊔₀ β)
-  desc  : ∀ {a i} -> Type i -> Level a -> Type a
-  imu   : ∀ {i a} {α : Level a} {I : Type i} -> Desc I α -> ⟦ I ⟧ -> Univ α
+  bot  : Prop
+  top  : Prop
+  nat  : Type₀
+  enum : ℕ -> Type₀
+  univ : ∀ {a} -> (α : Level a) -> Type α
+  σ    : ∀ {a b} {α : Level a} {β : Level b}
+       -> (A : Univ α) -> (⟦ A ⟧ -> Univ β) -> Univ (α ⊔  β)
+  π    : ∀ {a b} {α : Level a} {β : Level b}
+       -> (A : Univ α) -> (⟦ A ⟧ -> Univ β) -> Univ (α ⊔₀ β)
+  desc : ∀ {a i} {ι : Level i} -> Type ι -> (α : Level a) -> Type α
+  imu  : ∀ {i a} {ι : Level i} {α : Level a} {I : Type ι} -> Desc I α -> ⟦ I ⟧ -> Univ α
 
-⟦_⟧ᵒ : ∀ {a b} {α : Level a} {β : Level b} {A : Univ α}
+⟦_⟧ⁱ : ∀ {a b} {α : Level a} {β : Level b} {A : Univ α}
      -> (⟦ A ⟧ -> Univ β) -> ⟦ A ⟧ -> Set
-⟦ B ⟧ᵒ x = ⟦ B x ⟧
+⟦ B ⟧ⁱ x = ⟦ B x ⟧
 
 ⟦ bot          ⟧ = ⊥
 ⟦ top          ⟧ = ⊤
-⟦ α ≡ˢˡ β      ⟧ = α ≡ β
 ⟦ nat          ⟧ = ℕ
 ⟦ enum n       ⟧ = Apply Enum n -- `Apply` allows to make `⟦_⟧` constructor-headed.
 ⟦ univ α       ⟧ = Univ α
-⟦ σ A B        ⟧ = ∃ ⟦ B ⟧ᵒ
+⟦ σ A B        ⟧ = ∃ ⟦ B ⟧ⁱ
 ⟦ π A B        ⟧ = ∀ x -> ⟦ B x ⟧
 ⟦ desc I α     ⟧ = Desc I α
 ⟦ imu D j      ⟧ = μ D j
@@ -131,6 +134,11 @@ _≟ⁿ_ : ℕ -> ℕ -> Prop
 suc n ≟ⁿ suc m = n ≟ⁿ m
 _     ≟ⁿ _     = bot
 
+_≟ˡ_ : ∀ {a b} -> Level a -> Level b -> Prop
+lzero  ≟ˡ lzero  = top
+lsuc α ≟ˡ lsuc β = α ≟ˡ β
+_      ≟ˡ _      = bot
+
 _≅ᵉ_ : ∃ Enum -> ∃ Enum -> Prop
 0            , ()      ≅ᵉ 0            , ()
 1            , tt      ≅ᵉ 1            , tt      = top
@@ -143,40 +151,41 @@ _≈_ {α = lzero } {lzero } A₁ A₂ = A₁ ⇒ A₂ & A₂ ⇒ A₁
 _≈_ {α = lsuc _} {lsuc _} A₁ A₂ = A₁ ≃ A₂
 _≈_                       _  _  = bot
 
-_≅ᵈ_ : ∀ {i₁ i₂ a₁ a₂} {α₁ : Level a₁} {α₂ : Level a₂} {I₁ : Type i₁} {I₂ : Type i₂}
+_≅ᵈ_ : ∀ {i₁ i₂ a₁ a₂} {ι₁ : Level i₁} {ι₂ : Level i₂}
+         {α₁ : Level a₁} {α₂ : Level a₂} {I₁ : Type ι₁} {I₂ : Type ι₂}
      -> Desc I₁ α₁ -> Desc I₂ α₂ -> Prop
 var i₁    ≅ᵈ var i₂    = i₁ ≅ i₂
 π A₁ D₁   ≅ᵈ π A₂ D₂   = A₁ ≈ A₂ & π A₁ λ x₁ -> π A₂ λ x₂ -> x₁ ≅ x₂ ⇒ D₁ x₁ ≅ᵈ D₂ x₂
 (D₁ ⊛ E₁) ≅ᵈ (D₂ ⊛ E₂) = D₁ ≅ᵈ D₂ & E₁ ≅ᵈ E₂
 _         ≅ᵈ _         = bot
 
-_≊ᵈ_ : ∀ {i₁ i₂ a₁ a₂} {α₁ : Level a₁} {α₂ : Level a₂} {I₁ : Type i₁} {I₂ : Type i₂}
+_≊ᵈ_ : ∀ {i₁ i₂ a₁ a₂} {ι₁ : Level i₁} {ι₂ : Level i₂}
+         {α₁ : Level a₁} {α₂ : Level a₂} {I₁ : Type ι₁} {I₂ : Type ι₂}
      -> Desc I₁ α₁ -> Desc I₂ α₂ -> Prop
 _≊ᵈ_ {α₁ = lzero } {lzero } D₁ D₂ = imu D₁ ≅ imu D₂
 _≊ᵈ_ {α₁ = lsuc _} {lsuc _} D₁ D₂ = D₁ ≅ᵈ D₂
 _≊ᵈ_                        _  _  = bot
 
-bot            ≃ bot            = top
-top            ≃ top            = top
-(α₁ ≡ˢˡ β₁)    ≃ (α₂ ≡ˢˡ β₂)    = α₁ ≡ˢˡ α₂ & β₁ ≡ˢˡ β₂
-nat            ≃ nat            = top
-enum n₁        ≃ enum n₂        = n₁ ≟ⁿ n₂
-univ α₁        ≃ univ α₂        = level α₁ ≡ˢˡ level α₂
-σ A₁ B₁        ≃ σ A₂ B₂        = A₁ ≈ A₂ & B₁ ≅ B₂
-π A₁ B₁        ≃ π A₂ B₂        = A₂ ≈ A₁ & π A₁ λ x₁ -> π A₂ λ x₂ -> x₂ ≅ x₁ ⇒ B₁ x₁ ≈ B₂ x₂
-desc {a₁} I₁ _ ≃ desc {a₂} I₂ _ = I₁ ≃ I₂ & meta a₁ ≡ˢˡ meta a₂
-imu D₁ j₁      ≃ imu D₂ j₂      = D₁ ≊ᵈ D₂ & j₁ ≅ j₂
-_              ≃ _              = bot
+bot        ≃ bot        = top
+top        ≃ top        = top
+nat        ≃ nat        = top
+enum n₁    ≃ enum n₂    = n₁ ≟ⁿ n₂
+univ α₁    ≃ univ α₂    = α₁ ≟ˡ α₂
+σ A₁ B₁    ≃ σ A₂ B₂    = A₁ ≈ A₂ & B₁ ≅ B₂
+π A₁ B₁    ≃ π A₂ B₂    = A₂ ≈ A₁ & π A₁ λ x₁ -> π A₂ λ x₂ -> x₂ ≅ x₁ ⇒ B₁ x₁ ≈ B₂ x₂
+desc I₁ α₁ ≃ desc I₂ α₂ = I₁ ≃ I₂ & α₁ ≟ˡ α₂
+imu D₁ j₁  ≃ imu D₂ j₂  = D₁ ≊ᵈ D₂ & j₁ ≅ j₂
+_           ≃ _         = bot
 
-_≅e_ : ∀ {i₁ i₂ a₁ a₂ b₁ b₂} {α₁ : Level a₁} {α₂ : Level a₂} {β₁ : Level b₁} {β₂ : Level b₂}
-         {I₁ : Type i₁} {I₂ : Type i₂} {B₁ : ⟦ I₁ ⟧ -> Univ β₁} {B₂ : ⟦ I₂ ⟧ -> Univ β₂} {j₁ j₂}
-     -> (∃ λ (D₁ : Desc I₁ α₁) -> Extend D₁ ⟦ B₁ ⟧ᵒ j₁)
-     -> (∃ λ (D₂ : Desc I₂ α₂) -> Extend D₂ ⟦ B₂ ⟧ᵒ j₂)
+_≅e_ : ∀ {i₁ i₂ a₁ a₂ b₁ b₂} {ι₁ : Level i₁} {ι₂ : Level i₂}
+         {α₁ : Level a₁} {α₂ : Level a₂} {β₁ : Level b₁} {β₂ : Level b₂}
+         {I₁ : Type ι₁} {I₂ : Type ι₂} {B₁ : ⟦ I₁ ⟧ -> Univ β₁} {B₂ : ⟦ I₂ ⟧ -> Univ β₂} {j₁ j₂}
+     -> (∃ λ (D₁ : Desc I₁ α₁) -> Extend D₁ ⟦ B₁ ⟧ⁱ j₁)
+     -> (∃ λ (D₂ : Desc I₂ α₂) -> Extend D₂ ⟦ B₂ ⟧ⁱ j₂)
      -> Prop
 
 _≅_ {A = bot     } {bot     } _  _  = top
 _≅_ {A = top     } {top     } _  _  = top
-_≅_ {A = _ ≡ˢˡ _ } {_ ≡ˢˡ _ } _  _  = top
 _≅_ {A = nat     } {nat     } n₁ n₂ = n₁ ≟ⁿ n₂
 _≅_ {A = enum n₁ } {enum n₂ } e₁ e₂ = n₁ , detag e₁ ≅ᵉ n₂ , detag e₂
 _≅_ {A = univ α₁ } {univ α₂ } A₁ A₂ = A₁ ≈ A₂
@@ -186,10 +195,11 @@ _≅_ {A = desc _ _} {desc _ _} D₁ D₂ = D₁ ≅ᵈ D₂
 _≅_ {A = imu D₁ _} {imu D₂ _} d₁ d₂ = D₁ , knot d₁ ≅e D₂ , knot d₂
 _≅_                           _  _  = bot
 
-_≅s_ : ∀ {i₁ i₂ a₁ a₂ b₁ b₂} {α₁ : Level a₁} {α₂ : Level a₂} {β₁ : Level b₁} {β₂ : Level b₂}
-         {I₁ : Type i₁} {I₂ : Type i₂} {B₁ : ⟦ I₁ ⟧ -> Univ β₁} {B₂ : ⟦ I₂ ⟧ -> Univ β₂}
-     -> (∃ λ (D₁ : Desc I₁ α₁) -> ⟦ D₁ ⟧ᵈ ⟦ B₁ ⟧ᵒ)
-     -> (∃ λ (D₂ : Desc I₂ α₂) -> ⟦ D₂ ⟧ᵈ ⟦ B₂ ⟧ᵒ)
+_≅s_ : ∀ {i₁ i₂ a₁ a₂ b₁ b₂} {ι₁ : Level i₁} {ι₂ : Level i₂}
+         {α₁ : Level a₁} {α₂ : Level a₂} {β₁ : Level b₁} {β₂ : Level b₂}
+         {I₁ : Type ι₁} {I₂ : Type ι₂} {B₁ : ⟦ I₁ ⟧ -> Univ β₁} {B₂ : ⟦ I₂ ⟧ -> Univ β₂}
+     -> (∃ λ (D₁ : Desc I₁ α₁) -> ⟦ D₁ ⟧ᵈ ⟦ B₁ ⟧ⁱ)
+     -> (∃ λ (D₂ : Desc I₂ α₂) -> ⟦ D₂ ⟧ᵈ ⟦ B₂ ⟧ⁱ)
      -> Prop
 var i₁    , x₁      ≅s var i₂    , x₂      = x₁ ≅ x₂
 π A₁ D₁   , f₁      ≅s π A₂ D₂   , f₂      =
@@ -227,18 +237,22 @@ pos = var triv
 mu : ∀ {a} {α : Level a} -> Desc unit α -> Univ α
 mu D = imu D triv
 
-meta-inj : ∀ {a b} -> meta a ≡ meta b -> a ≡ b
-meta-inj prefl = prefl
+liftDesc : ∀ {i a b} {ι : Level i} {α : Level a} {β : Level b} {I : Type ι} .{{_ : a ≤ₘ b}}
+         -> Desc I α -> Desc I β
+liftDesc                (var i)            = var i
+liftDesc {b = b} {{q₁}} (π {c} {{q₂}} A D) = π
+  {{pright (pcong (c ⊔ₘ_) q₁) (ptrans (pcong (b ⊔ₘ_) q₂) q₁)}} A λ x -> liftDesc (D x)
+liftDesc                (D ⊛ E)            = liftDesc D ⊛ liftDesc E
 
-var-inj : ∀ {i b} {I : Type i} {β : Level b} {j₁ j₂ : ⟦ I ⟧}
+var-inj : ∀ {i b} {ι : Level i} {I : Type ι} {β : Level b} {j₁ j₂ : ⟦ I ⟧}
         -> var {β = β} j₁ ≡ var j₂ -> j₁ ≡ j₂
 var-inj prefl = prefl
 
-⊛-inj : ∀ {i b} {I : Type i} {β : Level b} {D₁ D₂ E₁ E₂ : Desc I β}
+⊛-inj : ∀ {i b} {ι : Level i} {I : Type ι} {β : Level b} {D₁ D₂ E₁ E₂ : Desc I β}
       -> (D₁ ⊛ E₁) ≡ (D₂ ⊛ E₂) -> D₁ ≡ D₂ × E₁ ≡ E₂
 ⊛-inj prefl = prefl , prefl
 
-node-inj : ∀ {i a} {α : Level a} {I : Type i}
+node-inj : ∀ {i a} {α : Level a} {ι : Level i} {I : Type ι}
              {D : Desc I α} {j} {e₁ e₂ : Extend D (μ D) j}
          -> node {D = D} e₁ ≡ node e₂ -> e₁ ≡ e₂
 node-inj prefl = prefl

@@ -1,6 +1,3 @@
--- We can do slightly better by adding something like
--- `eqable : ∀ {a} {α : Level a} -> (A : Univ α) -> Maybe (Eq A)`
-
 module OTT.Property.Eq where
 
 import Data.Nat.Base as Nat
@@ -19,13 +16,13 @@ module _ where
 
 -- We could compare functions with a finite domain for equality,
 -- but then equality can't be `_≡_`.
-SemEq : ∀ {i a} {α : Level a} {I : Type i} -> Desc I α -> Set
+SemEq : ∀ {i a} {ι : Level i} {α : Level a} {I : Type ι} -> Desc I α -> Set
 SemEq (var i) = ⊤
 SemEq (π A D) = ⊥
 SemEq (D ⊛ E) = SemEq D × SemEq E
 
 mutual
-  ExtendEq : ∀ {i a} {α : Level a} {I : Type i} -> Desc I α -> Set
+  ExtendEq : ∀ {i a} {ι : Level i} {α : Level a} {I : Type ι} -> Desc I α -> Set
   ExtendEq (var i) = ⊤
   ExtendEq (π A D) = Eq A × Pi A λ x -> ExtendEq (D x)
   ExtendEq (D ⊛ E) = SemEq D × ExtendEq E
@@ -40,14 +37,16 @@ mutual
   Eq  _         = ⊥
 
 mutual
-  decSem : ∀ {i a} {α : Level a} {I : Type i} {D₀ : Desc I α} {{eqD₀ : ExtendEq D₀}}
+  decSem : ∀ {i a} {ι : Level i} {α : Level a}
+             {I : Type ι} {D₀ : Desc I α} {{eqD₀ : ExtendEq D₀}}
          -> (D : Desc I α) {{eqD : SemEq D}} -> IsSet (⟦ D ⟧ᵈ (μ D₀))
   decSem (var i)                d₁        d₂       = decMu d₁ d₂
   decSem (π A D) {{()}}
   decSem (D ⊛ E) {{eqD , eqE}} (s₁ , t₁) (s₂ , t₂) =
     decSem D {{eqD}} s₁ s₂ <,>ᵈ decSem E {{eqE}} t₁ t₂
 
-  decExtend : ∀ {i a} {α : Level a} {I : Type i} {j} {D₀ : Desc I α} {{eqD₀ : ExtendEq D₀}}
+  decExtend : ∀ {i a} {ι : Level i} {α : Level a} {I : Type ι}
+                {D₀ : Desc I α} {j} {{eqD₀ : ExtendEq D₀}}
             -> (D : Desc I α) {{eqD : ExtendEq D}} -> IsSet (Extend D (μ D₀) j)
   decExtend (var i)                q₁        q₂       = yes contr
   decExtend (π A D) {{eqA , eqD}} (x₁ , e₁) (x₂ , e₂) =
@@ -55,14 +54,14 @@ mutual
   decExtend (D ⊛ E) {{eqD , eqE}} (s₁ , e₁) (s₂ , e₂) =
     decSem D {{eqD}} s₁ s₂ <,>ᵈ decExtend E {{eqE}} e₁ e₂
 
-  decMu : ∀ {i a} {α : Level a} {I : Type i} {D : Desc I α} {j} {{eqD : ExtendEq D}}
+  decMu : ∀ {i a} {ι : Level i} {α : Level a} {I : Type ι}
+            {D : Desc I α} {j} {{eqD : ExtendEq D}}
         -> IsSet (μ D j)
   decMu {D = D} (node e₁) (node e₂) = dcong node node-inj (decExtend D e₁ e₂)
 
   _≟_ : ∀ {a} {α : Level a} {A : Univ α} {{eqA : Eq A}} -> IsSet ⟦ A ⟧
   _≟_ {A = bot     }                ()        ()
   _≟_ {A = top     }                tt        tt       = yes prefl
-  _≟_ {A = α ≡ˢˡ β } {{()}}
   _≟_ {A = nat     }                n₁        n₂       = n₁ Nat.≟ n₂
   _≟_ {A = enum n  }               (tag e₁)  (tag e₂)  = dcong tag tag-inj (decEnum n e₁ e₂)
   _≟_ {A = univ α  } {{()}}

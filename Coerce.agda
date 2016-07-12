@@ -4,17 +4,24 @@ module OTT.Coerce where
 
 open import OTT.Core
 
-coerceFamℕ : ∀ {n₁ n₂} -> (A : ℕ -> Set) -> ⟦ n₁ ≅ n₂ ⟧ -> A n₁ -> A n₂
+coerceFamℕ : ∀ {n m} -> (A : ℕ -> Set) -> ⟦ n ≟ⁿ m ⟧ -> A n -> A m
 coerceFamℕ {0}     {0}     A q  x = x
 coerceFamℕ {suc _} {suc _} A q  x = coerceFamℕ (A ∘ suc) q x
 coerceFamℕ {0}     {suc _} A () x
 coerceFamℕ {suc _} {0}     A () x
 
-module _ where
-  open import Relation.Binary.PropositionalEquality.TrustMe
+coerceFamLevel : ∀ {a b} {α : Level a} {β : Level b}
+               -> (A : ∀ {a} -> Level a -> Set) -> ⟦ α ≟ˡ β ⟧ -> A α -> A β
+coerceFamLevel {α = lzero } {lzero } A q  x = x
+coerceFamLevel {α = lsuc _} {lsuc _} A q  x = coerceFamLevel (A ∘ lsuc) q x
+coerceFamLevel {α = lzero } {lsuc _} A () x
+coerceFamLevel {α = lsuc _} {lzero } A () x
 
-  Coerce : ∀ {a b} {α : Level a} {β : Level b} -> level α ≡ level β -> Univ α -> Univ β
-  Coerce {a} {b} {α} {β} q A rewrite trustMe {x = a} {y = b} | trustMe {x = α} {β} = A
+meta-eq : ∀ {a b} {β : Level b} -> (α : Level a) -> ⟦ α ≟ˡ β ⟧ -> a ≡ b
+meta-eq α q = coerceFamLevel {α = α} (λ {b} _ -> _ ≡ b) q prefl
+
+Coerce : ∀ {a b} {α : Level a} {β : Level b} -> ⟦ α ≟ˡ β ⟧ -> Univ α -> Univ β
+Coerce = coerceFamLevel Univ
 
 mutual
   coerce : ∀ {a b} {α : Level a} {β : Level b} {A : Univ α} {B : Univ β} -> ⟦ A ≈ B ⇒ A ⇒ B ⟧
@@ -26,8 +33,6 @@ mutual
   coerce′ : ∀ {a b} {α : Level a} {β : Level b} {A : Univ α} {B : Univ β} -> ⟦ A ≃ B ⇒ A ⇒ B ⟧
   coerce′ {A = bot     } {bot     } q ()
   coerce′ {A = top     } {top     } q tt = tt
-  -- It's OK to be strict here.
-  coerce′ {A = _ ≡ˢˡ _ } {_ ≡ˢˡ _ } q p  rewrite proj₁ q | proj₂ q = p
   coerce′ {A = nat     } {nat     } q n  = n
   coerce′ {A = enum n₁ } {enum n₂ } q e  = coerceFamℕ (Apply Enum) q e
   coerce′ {A = univ α₁ } {univ α₂ } q A  = Coerce q A
@@ -35,10 +40,9 @@ mutual
     coerce q₁ x , coerce (q₂ x (coerce q₁ x) (coherence q₁ x)) y
   coerce′ {A = π A₁ B₁ } {π A₂ B₂ } q f  = let q₁ , q₂ = q in
     λ x -> coerce (q₂ (coerce q₁ x) x (coherence q₁ x)) (f (coerce q₁ x))
-  coerce′ {A = desc _ _} {desc _ _} q D  = let qI , qa = q in coerceDesc qI (meta-inj qa) D
+  coerce′ {A = desc _ α} {desc _ _} q D  = let qI , qα = q in coerceDesc qI (meta-eq α qα) D
   coerce′ {A = imu _ _ } {imu _ _ } q d  = let qD , qi = q in coerceMu qD qi d
   coerce′ {A = bot     } {top     } ()
-  coerce′ {A = bot     } {_ ≡ˢˡ _ } ()
   coerce′ {A = bot     } {nat     } ()
   coerce′ {A = bot     } {enum _  } ()
   coerce′ {A = bot     } {univ _  } ()
@@ -47,7 +51,6 @@ mutual
   coerce′ {A = bot     } {desc _ _} ()
   coerce′ {A = bot     } {imu _ _ } ()
   coerce′ {A = top     } {bot     } ()
-  coerce′ {A = top     } {_ ≡ˢˡ _ } ()
   coerce′ {A = top     } {nat     } ()
   coerce′ {A = top     } {enum _  } ()
   coerce′ {A = top     } {univ _  } ()
@@ -55,18 +58,8 @@ mutual
   coerce′ {A = top     } {π _ _   } ()
   coerce′ {A = top     } {desc _ _} ()
   coerce′ {A = top     } {imu _ _ } ()
-  coerce′ {A = _ ≡ˢˡ _ } {bot     } ()
-  coerce′ {A = _ ≡ˢˡ _ } {top     } ()
-  coerce′ {A = _ ≡ˢˡ _ } {nat     } ()
-  coerce′ {A = _ ≡ˢˡ _ } {enum _  } ()
-  coerce′ {A = _ ≡ˢˡ _ } {univ _  } ()
-  coerce′ {A = _ ≡ˢˡ _ } {σ _ _   } ()
-  coerce′ {A = _ ≡ˢˡ _ } {π _ _   } ()
-  coerce′ {A = _ ≡ˢˡ _ } {desc _ _} ()
-  coerce′ {A = _ ≡ˢˡ _ } {imu _ _ } ()
   coerce′ {A = nat     } {bot     } ()
   coerce′ {A = nat     } {top     } ()
-  coerce′ {A = nat     } {_ ≡ˢˡ _ } ()
   coerce′ {A = nat     } {enum _  } ()
   coerce′ {A = nat     } {univ _  } ()
   coerce′ {A = nat     } {σ _ _   } ()
@@ -75,7 +68,6 @@ mutual
   coerce′ {A = nat     } {imu _ _ } ()
   coerce′ {A = enum _  } {bot     } ()
   coerce′ {A = enum _  } {top     } ()
-  coerce′ {A = enum _  } {_ ≡ˢˡ _ } ()
   coerce′ {A = enum _  } {nat     } ()
   coerce′ {A = enum _  } {univ _  } ()
   coerce′ {A = enum _  } {σ _ _   } ()
@@ -84,7 +76,6 @@ mutual
   coerce′ {A = enum _  } {imu _ _ } ()
   coerce′ {A = univ _  } {bot     } ()
   coerce′ {A = univ _  } {top     } ()
-  coerce′ {A = univ _  } {_ ≡ˢˡ _ } ()
   coerce′ {A = univ _  } {nat     } ()
   coerce′ {A = univ _  } {enum _  } ()
   coerce′ {A = univ _  } {σ _ _   } ()
@@ -93,7 +84,6 @@ mutual
   coerce′ {A = univ _  } {imu _ _ } ()
   coerce′ {A = σ _ _   } {bot     } ()
   coerce′ {A = σ _ _   } {top     } ()
-  coerce′ {A = σ _ _   } {_ ≡ˢˡ _ } ()
   coerce′ {A = σ _ _   } {nat     } ()
   coerce′ {A = σ _ _   } {enum _  } ()
   coerce′ {A = σ _ _   } {univ _  } ()
@@ -102,7 +92,6 @@ mutual
   coerce′ {A = σ _ _   } {imu _ _ } ()
   coerce′ {A = π _ _   } {bot     } ()
   coerce′ {A = π _ _   } {top     } ()
-  coerce′ {A = π _ _   } {_ ≡ˢˡ _ } ()
   coerce′ {A = π _ _   } {nat     } ()
   coerce′ {A = π _ _   } {enum _  } ()
   coerce′ {A = π _ _   } {univ _  } ()
@@ -111,7 +100,6 @@ mutual
   coerce′ {A = π _ _   } {imu _ _ } ()
   coerce′ {A = desc _ _} {bot     } ()
   coerce′ {A = desc _ _} {top     } ()
-  coerce′ {A = desc _ _} {_ ≡ˢˡ _ } ()
   coerce′ {A = desc _ _} {nat     } ()
   coerce′ {A = desc _ _} {enum _  } ()
   coerce′ {A = desc _ _} {univ _  } ()
@@ -120,33 +108,33 @@ mutual
   coerce′ {A = desc _ _} {imu _ _ } ()
   coerce′ {A = imu _ _ } {bot     } ()
   coerce′ {A = imu _ _ } {top     } ()
-  coerce′ {A = imu _ _ } {_ ≡ˢˡ _ } ()
   coerce′ {A = imu _ _ } {nat     } ()
   coerce′ {A = imu _ _ } {enum _  } ()
   coerce′ {A = imu _ _ } {univ _  } ()
   coerce′ {A = imu _ _ } {σ _ _   } ()
   coerce′ {A = imu _ _ } {π _ _   } ()
   coerce′ {A = imu _ _ } {desc _ _} ()
-  -- generated by http://ideone.com/ltrf04
+  -- (almost) generated by http://ideone.com/ltrf04
 
-  coerceDesc : ∀ {i₁ i₂ a₁ a₂} {α₁ : Level a₁} {α₂ : Level a₂} {I₁ : Type i₁} {I₂ : Type i₂}
+  coerceDesc : ∀ {i₁ i₂ a₁ a₂} {ι₁ : Level i₁} {ι₂ : Level i₂}
+                 {α₁ : Level a₁} {α₂ : Level a₂} {I₁ : Type ι₁} {I₂ : Type ι₂}
              -> ⟦ I₁ ≃ I₂ ⟧ -> a₁ ≡ a₂ -> Desc I₁ α₁ -> Desc I₂ α₂
-  coerceDesc qI qa (var j)           = var (coerce qI j)
+  coerceDesc qI qa (var i)           = var (coerce qI i)
   coerceDesc qI qa (π {a} {{q}} A D) =
     π {{ptrans (pright (pcong (a ⊔ₘ_) qa) q) qa}} A (coerceDesc qI qa ∘ D)
   coerceDesc qI qa (D ⊛ E)           = coerceDesc qI qa D ⊛ coerceDesc qI qa E
   
   coerceSem : ∀ {i₁ i₂ a₁ a₂ b₁ b₂}
-                {α₁ : Level a₁} {α₂ : Level a₂} {β₁ : Level b₁} {β₂ : Level b₂}
-                {I₁ : Type i₁} {I₂ : Type i₂}
+                {ι₁ : Level i₁} {ι₂ : Level i₂} {α₁ : Level a₁} {α₂ : Level a₂}
+                {β₁ : Level b₁} {β₂ : Level b₂} {I₁ : Type ι₁} {I₂ : Type ι₂}
                 {B₁ : ⟦ I₁ ⟧ -> Univ β₁} {B₂ : ⟦ I₂ ⟧ -> Univ β₂}
             -> (D₁ : Desc I₁ α₁)
             -> (D₂ : Desc I₂ α₂)
             -> ⟦ D₁ ≅ᵈ D₂ ⟧
             -> ⟦ B₁ ≅ B₂ ⟧
-            -> (⟦ D₁ ⟧ᵈ ⟦ B₁ ⟧ᵒ)
-            -> (⟦ D₂ ⟧ᵈ ⟦ B₂ ⟧ᵒ)
-  coerceSem (var j₁)  (var j₂)   qj       qB  x      = coerce (qB j₁ j₂ qj) x
+            -> (⟦ D₁ ⟧ᵈ ⟦ B₁ ⟧ⁱ)
+            -> (⟦ D₂ ⟧ᵈ ⟦ B₂ ⟧ⁱ)
+  coerceSem (var i₁)  (var i₂)   qi       qB  x      = coerce (qB i₁ i₂ qi) x
   coerceSem (π A₁ D₁) (π A₂ D₂) (qA , qD) qB  f      = λ x ->
     let qA′ = sym A₁ {A₂} qA
         x′  = coerce qA′ x
@@ -161,17 +149,17 @@ mutual
   coerceSem (_ ⊛ _) (π _ _) ()
 
   coerceExtend : ∀ {i₁ i₂ a₁ a₂ b₁ b₂}
-                   {α₁ : Level a₁} {α₂ : Level a₂} {β₁ : Level b₁} {β₂ : Level b₂}
-                   {I₁ : Type i₁} {I₂ : Type i₂}
+                   {ι₁ : Level i₁} {ι₂ : Level i₂} {α₁ : Level a₁} {α₂ : Level a₂}
+                   {β₁ : Level b₁} {β₂ : Level b₂} {I₁ : Type ι₁} {I₂ : Type ι₂}
                    {B₁ : ⟦ I₁ ⟧ -> Univ β₁} {B₂ : ⟦ I₂ ⟧ -> Univ β₂} {j₁ j₂}
                -> (D₁ : Desc I₁ α₁)
                -> (D₂ : Desc I₂ α₂)
                -> ⟦ D₁ ≅ᵈ D₂ ⟧
                -> ⟦ B₁ ≅ B₂ ⟧
                -> ⟦ j₁ ≅ j₂ ⟧
-               -> Extend D₁ ⟦ B₁ ⟧ᵒ j₁
-               -> Extend D₂ ⟦ B₂ ⟧ᵒ j₂
-  coerceExtend (var j₁)  (var j₂)   qj       qB qi  qji    = trans j₂ (right j₁ qj qji) qi
+               -> Extend D₁ ⟦ B₁ ⟧ⁱ j₁
+               -> Extend D₂ ⟦ B₂ ⟧ⁱ j₂
+  coerceExtend (var i₁)  (var i₂)   qi       qB qj  qij    = trans i₂ (right i₁ qi qij) qj
   coerceExtend (π A₁ D₁) (π A₂ D₂) (qA , qD) qB qi (x , e) = let x′ = coerce qA x in
     x′ , coerceExtend (D₁ x) (D₂ x′) (qD x x′ (coherence qA x)) qB qi e
   coerceExtend (D₁ ⊛ E₁) (D₂ ⊛ E₂) (qD , qE) qB qi (s , e) =
@@ -183,8 +171,8 @@ mutual
   coerceExtend (_ ⊛ _) (var _) ()
   coerceExtend (_ ⊛ _) (π _ _) ()
 
-  coerceMu : ∀ {i₁ i₂ a₁ a₂} {α₁ : Level a₁} {α₂ : Level a₂}
-               {I₁ : Type i₁} {I₂ : Type i₂} {D₁ : Desc I₁ α₁} {D₂ : Desc I₂ α₂} {j₁ j₂}
+  coerceMu : ∀ {i₁ i₂ a₁ a₂} {ι₁ : Level i₁} {ι₂ : Level i₂} {α₁ : Level a₁} {α₂ : Level a₂}
+               {I₁ : Type ι₁} {I₂ : Type ι₂} {D₁ : Desc I₁ α₁} {D₂ : Desc I₂ α₂} {j₁ j₂}
            -> ⟦ D₁ ≊ᵈ D₂ ⟧ -> ⟦ j₁ ≅ j₂ ⟧ -> μ D₁ j₁ -> μ D₂ j₂     
   coerceMu {α₁ = lzero } {lzero }                qD qj  d       = proj₁ (qD _ _ qj) d
   coerceMu {α₁ = lsuc _} {lsuc _} {D₁ = D₁} {D₂} qD qj (node e) =

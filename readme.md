@@ -204,7 +204,7 @@ test : (ns ≟ ns) ≡ yes prefl
 test = prefl
 ```
 
-There is [an alternative encoding](https://github.com/effectfully/random-stuff/blob/master/Desc/IRDesc.agda) which is a modified version of [7]. It's more powerful (it's able to express induction-recursion), but also significantly more complicated: data types must be defined mutually with coercions, which results in a giant mutual block. I didn't try to define equality and coercions for descriptions, but I suspect it's much harder than how it's now. I'll go with the current simple app
+There is [an alternative encoding](https://github.com/effectfully/random-stuff/blob/master/Desc/IRDesc.agda) which is a modified version of [7]. It's more powerful (it's able to express induction-recursion), but also significantly more complicated: data types must be defined mutually with coercions, which results in a giant mutual block. I didn't try to define equality and coercions for descriptions, but I suspect it's much harder than how it's now. I'll go with the current simple approach.
 
 ## Not implemented
 

@@ -5,12 +5,15 @@ open import OTT.Main
 infixr 3 _⊕_ _⊎_
 
 _⊕_ : ∀ {a b} {α : Level a} {β : Level b} -> Univ α -> Univ β -> Type₋₁ (α ⊔ β)
-_⊕_ {α = α} {β} A B = cmu′ (α ⊔ β) $ (A ⇨ pos) ∷ (B ⇨ pos) ∷ []
+_⊕_ {α = α} {β} A B = cmu₋₁ (α ⊔ β)
+                    $ (A ⇨ pos)
+                    ∷ (B ⇨ pos)
+                    ∷ []
 
 _⊎_ : ∀ {a b} {α : Level a} {β : Level b} -> Univ α -> Univ β -> Set
 A ⊎ B = ⟦ A ⊕ B ⟧
 
-pattern inj₁ x = #₀ (x , tt)
+pattern inj₁ x =  #₀ (x , tt)
 pattern inj₂ y = !#₁ (y , tt)
 
 [_,_] : ∀ {a b π} {α : Level a} {β : Level b} {A : Univ α} {B : Univ β} {P : A ⊎ B -> Set π}

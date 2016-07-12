@@ -11,7 +11,7 @@ fin = icmu
 Fin : ℕ -> Set
 Fin n = ⟦ fin n ⟧
 
-pattern fzeroₑ {n} q   = #₀  (n , q)
+pattern fzeroₑ {n} q   =  #₀ (n , q)
 pattern fsucₑ  {n} q i = !#₁ (n , i , q)
 
 fzero : ∀ {n} -> Fin (suc n)

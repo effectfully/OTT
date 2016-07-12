@@ -3,12 +3,15 @@ module OTT.Data.Maybe where
 open import OTT.Main
 
 maybe : ∀ {a} {α : Level a} -> Univ α -> Type₋₁ α
-maybe {α = α} A = cmu′ α $ pos ∷ (A ⇨ pos) ∷ []
+maybe {α = α} A = cmu₋₁ α
+                $ pos
+                ∷ (A ⇨ pos)
+                ∷ []
 
 Maybe : ∀ {a} {α : Level a} -> Univ α -> Set
 Maybe A = ⟦ maybe A ⟧
 
-pattern nothing = #₀  tt
+pattern nothing =  #₀  tt
 pattern just x  = !#₁ (x , tt)
 
 elimMaybe : ∀ {a π} {α : Level a} {A : Univ α} {P : Maybe A -> Set π}

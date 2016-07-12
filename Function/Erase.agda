@@ -10,12 +10,12 @@ unitView : ∀ {a} {α : Level a} -> (A : Univ α) -> UnitView A
 unitView unit = yes-unit
 unitView A    = no-unit
 
-Erase : ∀ {i b} {I : Type i} {β : Level b} -> Desc I β -> Desc unit β
+Erase : ∀ {i b} {ι : Level i} {I : Type ι} {β : Level b} -> Desc I β -> Desc unit β
 Erase (var i) = pos
 Erase (π A D) = π A (λ x -> Erase (D x))
 Erase (D ⊛ E) = Erase D ⊛ Erase E
 
-module _ {i b} {I : Type i} {β : Level b} {D : Desc I β} where
+module _ {i b} {ι : Level i} {I : Type ι} {β : Level b} {D : Desc I β} where
   mutual
     eraseSem : (E : Desc I β) -> ⟦ E ⟧ᵈ (μ D) -> ⟦ Erase E ⟧ᵈ (μ (Erase D))
     eraseSem (var i)  d      = erase d
@@ -31,7 +31,7 @@ module _ {i b} {I : Type i} {β : Level b} {D : Desc I β} where
     erase : ∀ {j} -> μ D j -> μ (Erase D) triv
     erase (node e) = node (eraseExtend D e)
 
-module _ {i b} {I : Type i} {β : Level b} {B} where
+module _ {i b} {ι : Level i} {I : Type ι} {β : Level b} {B} where
   mutual
     eraseConstSem : (D : Desc I β) -> ⟦ D ⟧ᵈ (const B) -> ⟦ Erase D ⟧ᵈ (const B)
     eraseConstSem (var i)  y      = y
@@ -57,12 +57,12 @@ module _ {b} {β : Level b} {B : Unit -> Set} where
     uneraseExtend (π A D) (x , e) = x , uneraseExtend (D x) e
     uneraseExtend (D ⊛ E) (x , e) = uneraseSem D x , uneraseExtend E e
 
-CheckErase : ∀ {i b} {I : Type i} {β : Level b} -> Desc I β -> Desc unit β
+CheckErase : ∀ {i b} {ι : Level i} {I : Type ι} {β : Level b} -> Desc I β -> Desc unit β
 CheckErase {I = I} D with unitView I
 ... | yes-unit = D
 ... | no-unit  = Erase D
 
-checkErase : ∀ {i b} {I : Type i} {β : Level b} {D : Desc I β} {j}
+checkErase : ∀ {i b} {ι : Level i} {I : Type ι} {β : Level b} {D : Desc I β} {j}
            -> μ D j -> μ (CheckErase D) triv
 checkErase {I = I} d with unitView I
 ... | yes-unit = d

@@ -123,6 +123,9 @@ pattern type a = univ (lsuc a)
 univ# = univ  ∘ natToLevel
 type# = univ# ∘ suc
 
+desc₋₁ : ∀ {a i} {ι : Level i} -> Type ι -> (α : Level a) -> Univ _
+desc₋₁ I α = desc I (lsuc lzero ⊔ α)
+
 _&_ : ∀ {a b} {α : Level a} {β : Level b} -> Univ α -> Univ β -> Univ (α ⊔  β)
 A & B = σ A λ _ -> B
 

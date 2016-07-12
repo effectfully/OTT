@@ -13,7 +13,7 @@ list A = mu $ π (enum 2) (fromTuple (pos , (A ⇨ pos ⊛ pos)))
 List : ∀ {a} {α : Level a} -> Univ α -> Set
 List A = ⟦ list A ⟧
 
-pattern []       = #₀ tt
+pattern []       =  #₀  tt
 pattern _∷_ x xs = !#₁ (x , xs , tt)
 
 elimList : ∀ {a π} {α : Level a} {A : Univ α}
@@ -42,9 +42,9 @@ icmu Ds = imu $ π (enum (length Ds)) (fromList Ds)
 cmu : ∀ {a} {α : Level a} -> List (desc unit (lsuc α)) -> Type α
 cmu Ds = icmu Ds triv
 
-icmu′ : ∀ {i a} {ι : Level i} {I : Type ι}
-      -> (α : Level a) -> List (desc I α) -> ⟦ I ⟧ -> Type₋₁ α
-icmu′ α Ds = imu $ π (enum (length Ds)) (liftDesc ∘ fromList Ds)
+icmu₋₁ : ∀ {i a} {ι : Level i} {I : Type ι}
+       -> (α : Level a) -> List (desc₋₁ I α) -> ⟦ I ⟧ -> Type₋₁ α
+icmu₋₁ α Ds = imu $ π (enum (length Ds)) (fromList Ds)
 
-cmu′ : ∀ {a} -> (α : Level a) -> List (desc unit α) -> Type₋₁ α
-cmu′ α Ds = icmu′ α Ds triv
+cmu₋₁ : ∀ {a} -> (α : Level a) -> List (desc₋₁ unit α) -> Type₋₁ α
+cmu₋₁ α Ds = icmu₋₁ α Ds triv

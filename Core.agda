@@ -55,8 +55,7 @@ _≅_ : ∀ {a b} {α : Level a} {β : Level b} {A : Univ α} {B : Univ β} -> �
 
 data Desc {i b} {ι : Level i} (I : Type ι) (β : Level b) : Set where
   var : ⟦ I ⟧ -> Desc I β
-  π   : ∀ {a} {α : Level a} .{{_ : a ≤ₘ b}}
-      -> (A : Univ α) -> (⟦ A ⟧ -> Desc I β) -> Desc I β
+  π   : ∀ {a} {α : Level a} .{{_ : a ≤ₘ b}} -> (A : Univ α) -> (⟦ A ⟧ -> Desc I β) -> Desc I β
   _⊛_ : Desc I β -> Desc I β -> Desc I β
 
 ⟦_⟧ᵈ : ∀ {i a} {ι : Level i} {α : Level a} {I : Type ι}
@@ -97,15 +96,12 @@ data Univ where
   nat  : Type₀
   enum : ℕ -> Type₀
   univ : ∀ {a} -> (α : Level a) -> Type α
-  σ    : ∀ {a b} {α : Level a} {β : Level b}
-       -> (A : Univ α) -> (⟦ A ⟧ -> Univ β) -> Univ (α ⊔  β)
-  π    : ∀ {a b} {α : Level a} {β : Level b}
-       -> (A : Univ α) -> (⟦ A ⟧ -> Univ β) -> Univ (α ⊔₀ β)
+  σ    : ∀ {a b} {α : Level a} {β : Level b} -> (A : Univ α) -> (⟦ A ⟧ -> Univ β) -> Univ (α ⊔  β)
+  π    : ∀ {a b} {α : Level a} {β : Level b} -> (A : Univ α) -> (⟦ A ⟧ -> Univ β) -> Univ (α ⊔₀ β)
   desc : ∀ {a i} {ι : Level i} -> Type ι -> (α : Level a) -> Type α
   imu  : ∀ {i a} {ι : Level i} {α : Level a} {I : Type ι} -> Desc I α -> ⟦ I ⟧ -> Univ α
 
-⟦_⟧ⁱ : ∀ {a b} {α : Level a} {β : Level b} {A : Univ α}
-     -> (⟦ A ⟧ -> Univ β) -> ⟦ A ⟧ -> Set
+⟦_⟧ⁱ : ∀ {a b} {α : Level a} {β : Level b} {A : Univ α} -> (⟦ A ⟧ -> Univ β) -> ⟦ A ⟧ -> Set
 ⟦ B ⟧ⁱ x = ⟦ B x ⟧
 
 ⟦ bot          ⟧ = ⊥
@@ -243,8 +239,8 @@ mu D = imu D triv
 liftDesc : ∀ {i a b} {ι : Level i} {α : Level a} {β : Level b} {I : Type ι} .{{_ : a ≤ₘ b}}
          -> Desc I α -> Desc I β
 liftDesc                (var i)            = var i
-liftDesc {b = b} {{q₁}} (π {c} {{q₂}} A D) = π
-  {{pright (pcong (c ⊔ₘ_) q₁) (ptrans (pcong (b ⊔ₘ_) q₂) q₁)}} A λ x -> liftDesc (D x)
+liftDesc {b = b} {{q₁}} (π {c} {{q₂}} A D) =
+  π {{pright (pcong (c ⊔ₘ_) q₁) (ptrans (pcong (b ⊔ₘ_) q₂) q₁)}} A λ x -> liftDesc (D x)
 liftDesc                (D ⊛ E)            = liftDesc D ⊛ liftDesc E
 
 var-inj : ∀ {i b} {ι : Level i} {I : Type ι} {β : Level b} {j₁ j₂ : ⟦ I ⟧}

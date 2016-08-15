@@ -1,6 +1,7 @@
 module OTT.Data.Vec where
 
 open import OTT.Main
+open import OTT.Data.Fin
 
 infixr 5 _∷ᵥ_
 
@@ -53,3 +54,15 @@ elimVec : ∀ {n a p} {α : Level a} {π : Level p} {A : Univ α}
         -> (xs : Vec A n)
         -> ⟦ P xs ⟧
 elimVec P f z = elim P (fromTuple (z , λ n x xs -> f x))
+
+vlookupₑ : ∀ {n m a} {α : Level a} {A : Univ α} -> ⟦ n ≅ m ⇒ fin n ⇒ vec A m ⇒ A ⟧
+vlookupₑ         p (fzeroₑ q)       (vconsₑ r x xs)      = x
+vlookupₑ {n} {m} p (fsucₑ {n′} q i) (vconsₑ {m′} r x xs) =
+  vlookupₑ (left (suc n′) {m} {suc m′} (trans (suc n′) {n} {m} q p) r) i xs
+vlookupₑ {n} {m} p (fzeroₑ {n′} q)  (vnilₑ r)            =
+  ⊥-elim $ left (suc n′) {m} {0} (trans (suc n′) {n} {m} q p) r
+vlookupₑ {n} {m} p (fsucₑ {n′} q i) (vnilₑ r)            =
+  ⊥-elim $ left (suc n′) {m} {0} (trans (suc n′) {n} {m} q p) r
+
+vlookup : ∀ {n a} {α : Level a} {A : Univ α} -> Fin n -> Vec A n -> ⟦ A ⟧
+vlookup {n} = vlookupₑ (refl n)

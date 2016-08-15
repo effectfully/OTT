@@ -45,6 +45,12 @@ tag-inj : ∀ {α β} {A : Set α} {B : A -> Set β} {x} {y₁ y₂ : B x}
         -> tag {B = B} y₁ ≡ tag y₂ -> y₁ ≡ y₂
 tag-inj prefl = prefl
 
+data Match {ι α} {I : Set ι} {i} (A : I -> Set α) (x : A i) : Set (ι ⊔ₘ α) where
+  matched : ∀ {j} -> (x′ : A j) -> [ A ] x ≅ x′ -> Match A x
+
+match : ∀ {ι α} {I : Set ι} {i} -> (A : I -> Set α) -> (x : A i) -> Match A x
+match A x = matched x irefl
+
 data IMatch {ι α β} {I : Set ι} {i} (A : I -> Set α) {x : A i} 
             (B : ∀ {i} -> A i -> Set β) (y : B x) : Set (ι ⊔ₘ α ⊔ₘ β) where
   imatched : ∀ {i} {x : A i} -> (y′ : B x) -> [ A ][ B ] y ≅ y′ -> IMatch A B y

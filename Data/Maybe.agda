@@ -1,6 +1,6 @@
 module OTT.Data.Maybe where
 
-open import OTT.Main
+open import OTT.Main hiding (Maybe; nothing; just)
 
 maybe : ∀ {a} {α : Level a} -> Univ α -> Type₋₁ α
 maybe {α = α} A = cmu₋₁ α

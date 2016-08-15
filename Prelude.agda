@@ -3,8 +3,8 @@ module OTT.Prelude where
 open import Level
   renaming (Level to MetaLevel; zero to lzeroₘ; suc to lsucₘ; _⊔_ to _⊔ₘ_) using () public
 open import Function public
-open import Relation.Binary.PropositionalEquality
-  as P renaming (refl to prefl; trans to ptrans; cong to pcong; cong₂ to pcong₂) using (_≡_) public
+open import Relation.Binary.PropositionalEquality as P using (_≡_)
+  renaming (refl to prefl; trans to ptrans; subst to psubst; cong to pcong; cong₂ to pcong₂) public
 open import Data.Empty public
 open import Data.Nat.Base hiding (_⊔_; _≟_; erase) public
 open import Data.Maybe.Base using (Maybe; nothing; just) public
@@ -35,6 +35,10 @@ instance
 
 pright : ∀ {α} {A : Set α} {x y z : A} -> x ≡ y -> x ≡ z -> y ≡ z
 pright prefl prefl = prefl
+
+hpcong₂ : ∀ {α β γ} {A : Set α} {B : A -> Set β} {C : Set γ} {x₁ x₂} {y₁ : B x₁} {y₂ : B x₂}
+        -> (f : ∀ x -> B x -> C) -> (q : x₁ ≡ x₂) -> psubst B q y₁ ≡ y₂ -> f x₁ y₁ ≡ f x₂ y₂
+hpcong₂ f prefl prefl = prefl
 
 record Apply {α β} {A : Set α} (B : A -> Set β) x : Set β where
   constructor tag

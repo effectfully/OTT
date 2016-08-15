@@ -207,7 +207,7 @@ var i₁    , x₁      ≅s var i₂    , x₂      = x₁ ≅ x₂
 _                   ≅s _                   = bot
 
 var i₁    , q₁      ≅e var i₂    , q₂      = i₁ ≅ i₂
-π A₁ D₁   , x₁ , e₁ ≅e π A₂ D₂   , x₂ , e₂ = D₁ x₁ , e₁ ≅e D₂ x₂ , e₂
+π A₁ D₁   , x₁ , e₁ ≅e π A₂ D₂   , x₂ , e₂ = x₁ ≅ x₂ & D₁ x₁ , e₁ ≅e D₂ x₂ , e₂
 (D₁ ⊛ E₁) , s₁ , e₁ ≅e (D₂ ⊛ E₂) , s₂ , e₂ = D₁ , s₁ ≅s D₂ , s₂ & E₁ , e₁ ≅e E₂ , e₂
 _                   ≅e _                   = bot
 

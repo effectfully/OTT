@@ -14,8 +14,6 @@ module _ where
   contr : {A : Prop} {x y : ⟦ A ⟧} -> x ≡ y
   contr = trustMe
 
--- We could compare functions with a finite domain for equality,
--- but then equality can't be `_≡_`.
 SemEq : ∀ {i a} {ι : Level i} {α : Level a} {I : Type ι} -> Desc I α -> Set
 SemEq (var i) = ⊤
 SemEq (π A D) = ⊥
@@ -70,6 +68,59 @@ mutual
   _≟_ {A = π A B   } {{()}}
   _≟_ {A = desc I α} {{()}}
   _≟_ {A = imu D j }                d₁        d₂       = decMu d₁ d₂
+
+coerceFamEnum : ∀ {n} {e f : Apply Enum n} -> (A : Apply Enum n -> Set) -> ⟦ e ≅ f ⟧ -> A e -> A f
+coerceFamEnum {0}           {tag ()      } {tag ()      } A q  x
+coerceFamEnum {1}           {tag tt      } {tag tt      } A q  x = x
+coerceFamEnum {suc (suc n)} {tag nothing } {tag nothing } A q  x = x
+coerceFamEnum {suc (suc n)} {tag (just _)} {tag (just _)} A q  x =
+  coerceFamEnum (A ∘ tag ∘ just ∘ detag) q x
+coerceFamEnum {suc (suc n)} {tag nothing } {tag (just _)} A () x
+coerceFamEnum {suc (suc n)} {tag (just _)} {tag nothing } A () x
+
+mutual
+  observeSem : ∀ {i a} {ι : Level i} {α : Level a}
+                 {I : Type ι} {E : Desc I α} {{eqE : ExtendEq E}}
+             -> (D : Desc I α) {{edD : SemEq D}}
+             -> (d₁ d₂ : ⟦ D ⟧ᵈ (μ E)) -> ⟦ D , d₁ ≅s D , d₂ ⟧ -> d₁ ≡ d₂
+  observeSem (var i)                d₁        d₂        q        = observe q
+  observeSem (π A D) {{()}}         d₁        d₂        q
+  observeSem (D ⊛ E) {{eqD , eqE}} (d₁ , e₁) (d₂ , e₂) (qd , qe) =
+    pcong₂ _,_ (observeSem D {{eqD}} d₁ d₂ qd) (observeSem E {{eqE}} e₁ e₂ qe)
+
+  observeExtend : ∀ {i a} {ι : Level i} {α : Level a} {I : Type ι}
+                    {E : Desc I α} {j} {{edE : ExtendEq E}}
+                -> (D : Desc I α) {{edD : ExtendEq D}}
+                -> (e₁ e₂ : Extend D (μ E) j) -> ⟦ D , e₁ ≅e D , e₂ ⟧ -> e₁ ≡ e₂
+  observeExtend (var i)                q₁        q₂        q        = contr
+  observeExtend (π A D) {{eqA , eqD}} (x₁ , e₁) (x₂ , e₂) (qx , qe)
+    rewrite observe {x = x₁} {x₂} {{eqA}} qx =
+      pcong (_,_ _) (observeExtend (D x₂) {{apply eqD x₂}} e₁ e₂ qe)
+  observeExtend (D ⊛ E) {{eqD , eqE}} (d₁ , e₁) (d₂ , e₂) (qd , qe) =
+    pcong₂ _,_ (observeSem D {{eqD}} d₁ d₂ qd) (observeExtend E {{eqE}} e₁ e₂ qe)
+
+  observeMu : ∀ {i a} {ι : Level i} {α : Level a} {I : Type ι} {j}
+                {D : Desc I α} {d e : μ D j} {{eqD : ExtendEq D}}
+            -> ⟦ d ≅ e ⟧ -> d ≡ e
+  observeMu {D = D} {node e₁} {node e₂} q = pcong node (observeExtend D e₁ e₂ q)
+
+  observe : ∀ {a} {α : Level a} {A : Univ α} {x y : ⟦ A ⟧} {{eqA : Eq A}} -> ⟦ x ≅ y ⟧ -> x ≡ y
+  observe {A = bot     } {()}      {()}
+  observe {A = top     }                                    q        = prefl
+  observe {A = nat     }                                    q        = coerceFamℕ    (_ ≡_) q prefl
+  observe {A = enum n  } {e₁}      {e₂}                     q        = coerceFamEnum (_ ≡_) q prefl
+  observe {A = univ α  }                     {{()}}
+  observe {A = σ A B   } {x₁ , y₁} {x₂ , y₂} {{eqA , eqB}} (qx , qy)
+    rewrite observe {x = x₁} {x₂} {{eqA}} qx = pcong (_,_ _) (observe {{apply eqB x₂}} qy)
+  observe {A = π A B   }                     {{()}}
+  observe {A = desc I α}                     {{()}}
+  observe {A = imu D j } {node e₁} {node e₂}                q        = observeMu q
+
+module _ where
+  open import Relation.Binary.PropositionalEquality.TrustMe
+
+  eobserve : ∀ {a} {α : Level a} {A : Univ α} {x y : ⟦ A ⟧} {{eqA : Eq A}} -> ⟦ x ≅ y ⟧ -> x ≡ y
+  eobserve = erase ∘ observe
 
 private
   module Test where

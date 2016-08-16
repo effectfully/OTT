@@ -55,6 +55,39 @@ elimVec : ∀ {n a p} {α : Level a} {π : Level p} {A : Univ α}
         -> ⟦ P xs ⟧
 elimVec P f z = elim P (fromTuple (z , λ n x xs -> f x))
 
+splitVec : ∀ {n a β} {α : Level a} {A : Univ α} {B : Set β}
+         -> (⟦ A ⟧ -> Vec A n -> B) -> Vec A (suc n) -> B
+splitVec k (vnilₑ ())
+splitVec k (vconsₑ q x xs) = k x (subst (vec _) q xs)
+
+module LookupViaElim where
+--   open import OTT.Property.Eq
+
+--   elimIndFin : ∀ {n π}
+--              -> (P : ∀ n -> Set π)
+--              -> (∀ {n} -> P n -> P (suc n))
+--              -> (∀ {n} -> P (suc n))
+--              -> Fin n
+--              -> P n
+--   elimIndFin P f x = gelimFin (λ {n} _ -> P n)
+--                               (λ q -> psubst P (observe q) ∘ f)
+--                               (λ q -> psubst P (observe q) x)
+
+  elimIndFin : ∀ {n p} {π : Level p}
+             -> (P : ∀ n -> Univ π)
+             -> (∀ {n} -> ⟦ P n ⇒ P (suc n) ⟧)
+             -> (∀ {n} -> ⟦ P (suc n) ⟧)
+             -> Fin n
+             -> ⟦ P n ⟧
+  elimIndFin P f x = gelimFin (λ {n} _ -> ⟦ P n ⟧)
+                              (λ q -> subst P q ∘ f)
+                              (λ q -> subst P q x)
+
+  vlookup : ∀ {n a} {α : Level a} {A : Univ α} -> Fin n -> Vec A n -> ⟦ A ⟧
+  vlookup {A = A} = elimIndFin (λ n -> vec A n ⇒ A)
+                               (splitVec ∘ const)
+                               (splitVec const)
+
 vlookupₑ : ∀ {n m a} {α : Level a} {A : Univ α} -> ⟦ n ≅ m ⇒ fin n ⇒ vec A m ⇒ A ⟧
 vlookupₑ         p (fzeroₑ q)       (vconsₑ r x xs)      = x
 vlookupₑ {n} {m} p (fsucₑ {n′} q i) (vconsₑ {m′} r x xs) =

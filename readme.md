@@ -216,6 +216,8 @@ There is [an alternative encoding](https://github.com/effectfully/random-stuff/b
 
 - Quotients. Or maybe we can implement even quotient inductive types ([10])?
 
+- Pattern matching doesn't work properly, because Agda's unification is nailed to definitional equality and cannot handle fancy propositional equality. See [Pattern matching in Observational Type Theory](http://stackoverflow.com/questions/38957229/pattern-matching-in-observational-type-theory).
+
 ## A final remark
 
 Note that it's a library and not a formalization, since termination and positivity checkers are disabled. There are also several postulates (as well as in the original OTT), but nothing unexpected:

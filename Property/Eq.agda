@@ -7,7 +7,6 @@ open import OTT.Function.Pi
 
 infix 4 _≟_
 
--- TODO?
 module _ where
   open import Relation.Binary.PropositionalEquality.TrustMe
 

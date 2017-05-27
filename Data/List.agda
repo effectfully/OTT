@@ -7,8 +7,15 @@ open import OTT.Function.Elim
 
 infixr 5 _∷_
 
+-- It was, but this breaks inference with Agda 2.5.2.
+-- list : ∀ {a} {α : Level a} -> Univ α -> Type₋₁ α
+-- list A = mu $ π (enum 2) (fromTuple (pos , (A ⇨ pos ⊛ pos)))
+
 list : ∀ {a} {α : Level a} -> Univ α -> Type₋₁ α
-list A = mu $ π (enum 2) (fromTuple (pos , (A ⇨ pos ⊛ pos)))
+list A = mu $ π (enum 2) λ
+  { (tag  nothing) -> pos
+  ; (tag (just _)) -> A ⇨ pos ⊛ pos
+  }
 
 List : ∀ {a} {α : Level a} -> Univ α -> Set
 List A = ⟦ list A ⟧
